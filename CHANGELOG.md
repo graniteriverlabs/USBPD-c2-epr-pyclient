@@ -2,11 +2,11 @@
 
 Notable changes to this package. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version numbers track
-the GRL C2-EPR release they were built against.
+the GRLPS C2-EPR release they were built against.
 
 ## 1.6.1.4 - 2026-09-19
 
-Initial public release.
+Initial public release of the GRL Platform Solutions C2-EPR Python client.
 
 ### Changed - BREAKING
 

@@ -1,6 +1,6 @@
-# GRL C2-EPR API Client
+# GRLPS C2-EPR API Client
 
-Python client for the **GRL USB-PD C2-EPR** application. It drives the app over
+Python client for the **GRL Platform Solutions (GRLPS) USB-PD C2-EPR** application. It drives the app over
 its local HTTP API: start it, connect to the controller, load a VIF, pick test
 cases, run them and collect the report — from a script or from the command line.
 
@@ -20,8 +20,8 @@ client.run_testcases()
 |---|---|
 | OS | Windows |
 | Python | 3.11 or newer (enforced at install and at import) |
-| Software | GRL USB-PD C2-EPR application, installed and licensed |
-| Hardware | a reachable GRL C2-EPR controller |
+| Software | GRLPS USB-PD C2-EPR application, installed and licensed |
+| Hardware | a reachable GRLPS C2-EPR controller |
 
 ## Install
 
@@ -67,7 +67,7 @@ Open `config\grlps_app_config.json` in that folder and replace the placeholder:
 "ip_address": "192.0.2.50"     →     "ip_address": "<your controller IP>"
 ```
 
-Check `app_path` points at your C2-EPR installation while you are there.
+Check `app_path` points at your GRLPS C2-EPR installation while you are there.
 
 ### 3. Add your VIF
 
@@ -253,4 +253,5 @@ is published so you can read it, script against it and debug integrations. A
 valid licence from GRL Platform Solutions is required to use it, and the EULA
 does not permit redistribution, sublicensing, or reverse engineering.
 
-GRL and the GRL logo are trademarks of GRL Platform Solutions.
+GRLPS, GRL Platform Solutions and the GRL Platform Solutions logo are
+trademarks of GRL Platform Solutions.

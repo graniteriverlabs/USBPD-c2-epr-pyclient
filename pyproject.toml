@@ -7,14 +7,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "usbpd-c2-epr-pyclient"
 version = "1.6.1.4"
-description = "GRL C2-EPR automation client - drive the GRL USB-PD C2-EPR application over its local HTTP API."
+description = "GRLPS C2-EPR automation client - drive the GRL Platform Solutions USB-PD C2-EPR application over its local HTTP API."
 readme = "README.md"
 # Kept in step with _MIN_PYTHON in the facade, so pip and the import-time check
 # agree. The wheel is pure Python, so one build covers every listed version.
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"
 authors = [{ name = "GRL Platform Solutions" }]
-keywords = ["grl", "usb-pd", "c2-epr", "epr", "test-automation"]
+keywords = ["grlps", "grl", "usb-pd", "c2-epr", "epr", "test-automation"]
 classifiers = [
     "Private :: Do Not Upload",
     "Development Status :: 5 - Production/Stable",

@@ -11,7 +11,7 @@ working days.
 
 ## Scope
 
-This package is a client that talks to the GRL C2-EPR application over a local
+This package is a client that talks to the GRLPS C2-EPR application over a local
 HTTP API. Issues in the C2-EPR application itself should also go to the address
 above, noting the application version.
 
