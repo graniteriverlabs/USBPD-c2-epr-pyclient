@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "description": "Logging configuration - default, session, environments, formats",
+  "configLocation": "config/logging_config.json",
+  "default": {
+    "logFilename": "api_framework.log",
+    "logDirectory": "user_interaction/logs",
+    "logLevel": "INFO",
+    "logToConsole": true,
+    "maxLogSizeMb": 10,
+    "backupCount": 5,
+    "rotationType": "size",
+    "logMode": "a",
+    "loggerName": "ApiFramework"
+  },
+  "session": {
+    "logFilename": "api_framework_session.log",
+    "logDirectory": "user_interaction/logs",
+    "logLevel": "INFO",
+    "logToConsole": true,
+    "maxLogSizeMb": 5,
+    "backupCount": 3,
+    "rotationType": "size",
+    "logMode": "a",
+    "loggerName": "ApiFramework_Session"
+  },
+  "environments": {
+    "development": {
+      "logLevel": "DEBUG",
+      "logToConsole": true,
+      "maxLogSizeMb": 5,
+      "backupCount": 3,
+      "rotationType": "size"
+    },
+    "production": {
+      "logLevel": "INFO",
+      "logToConsole": false,
+      "maxLogSizeMb": 50,
+      "backupCount": 30,
+      "rotationType": "time"
+    },
+    "testing": {
+      "logLevel": "WARNING",
+      "logToConsole": true,
+      "logMode": "w",
+      "backupCount": 1,
+      "maxLogSizeMb": 2
+    }
+  },
+  "formats": {
+    "simple": "%(asctime)s - %(levelname)s - %(message)s",
+    "detailed": "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] [%(threadName)s] - %(message)s",
+    "debug": "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] [%(threadName)s] [%(funcName)s] - %(message)s",
+    "json": "{\"timestamp\": \"%(asctime)s\", \"level\": \"%(levelname)s\", \"message\": \"%(message)s\", \"module\": \"%(name)s\"}"
+  }
+}

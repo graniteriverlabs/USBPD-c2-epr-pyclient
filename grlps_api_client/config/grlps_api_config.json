@@ -1,0 +1,210 @@
+{
+  "ConnectionSetup": {
+    "method": "GET",
+    "path": "api/ConnectionSetup/0"
+  },
+  "ForceStop": {
+    "method": "POST",
+    "path": "api/ConnectionSetup/ForceStopCurrentExecution"
+  },
+  "GetIPAddressHistory": {
+    "method": "GET",
+    "path": "api/ConnectionSetup/GetIPAddressHistory"
+  },
+  "LatestFirmwareAndEloadVersion": {
+    "method": "GET",
+    "path": "api/ConnectionSetup/LatestFirmwareAndEloadVersion"
+  },
+  "GetSoftwareVersion": {
+    "method": "GET",
+    "path": "api/App/GetSoftwareVersion"
+  },
+  "GetAppState": {
+    "method": "GET",
+    "path": "api/App/GetAppState"
+  },
+  "GetMessageBox": {
+    "method": "GET",
+    "path": "api/App/GetMessageBox"
+  },
+  "PutMessageBoxResponse": {
+    "method": "PUT",
+    "path": "api/App/PutMessageBoxResponse"
+  },
+  "PutProjectFolder": {
+    "method": "PUT",
+    "path": "api/App/PutProjectFolderName"
+  },
+  "DisablePop": {
+    "method": "PUT",
+    "path": "api/App/DisablePop"
+  },
+  "GetTemperatureInfo": {
+    "method": "GET",
+    "path": "api/App/GetTemperatureInfo"
+  },
+  "GetTestCaseList": {
+    "method": "GET",
+    "path": "api/TestConfiguration/GetTestCaseList"
+  },
+  "PostTestListToExecute": {
+    "method": "POST",
+    "path": "api/TestConfiguration/PostTestListToExecute/0"
+  },
+  "StopTestExecution": {
+    "method": "POST",
+    "path": "api/TestConfiguration/StopTestExecution"
+  },
+  "PutCommonTestConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutCommonTestConfiguration"
+  },
+  "PutCurrentSelectedPort": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutCurrentSelectedPort"
+  },
+  "GetCurrentSelectedPortStatus": {
+    "method": "GET",
+    "path": "api/TestConfiguration/GetCurrentSelectedPortStatus"
+  },
+  "PDM": {
+    "method": "GET",
+    "path": "api/TestConfiguration/PDM"
+  },
+  "GetCableName": {
+    "method": "GET",
+    "path": "api/TestConfiguration/GetCableName"
+  },
+  "PutPD3Configuration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutPD3Configuration"
+  },
+  "PutDpAltConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutDpAltConfiguration"
+  },
+  "PutQC3Configuration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutQC3Configuration"
+  },
+  "PutQC4Configuration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutQC4Configuration"
+  },
+  "PutSPTConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutSPTConfiguration"
+  },
+  "PutTBTConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutTBTConfiguration"
+  },
+  "PutDeterministicConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutDeterministicConfiguration"
+  },
+  "PutFunctionalConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutFunctionalConfiguration"
+  },
+  "PutPd2Configuration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutPd2Configuration"
+  },
+  "PutCBConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutCBConfiguration"
+  },
+  "PutBC_1_2Configuration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutBC_1_2Configuration"
+  },
+  "PutMfiChargerTestConfiguration": {
+    "method": "PUT",
+    "path": "api/TestConfiguration/PutMfiChargerTestConfiguration"
+  },
+  "PutPortConfigurations": {
+    "method": "PUT",
+    "path": "api/ProductCapability/PutPortConfigurations"
+  },
+  "GetPortConfigurations": {
+    "method": "GET",
+    "path": "api/ProductCapability/GetPortConfigurations"
+  },
+  "VifPath": {
+    "method": "PUT",
+    "path": "api/ProductCapability/PutVIFFile"
+  },
+  "PutVIFData": {
+    "method": "PUT",
+    "path": "api/ProductCapability/PutVIFData"
+  },
+  "GetIrDropCalibrationStatus": {
+    "method": "GET",
+    "path": "api/IRDropCalibration/GetIrDropCalibrationStatus"
+  },
+  "GetIRDropCalibrationTableValues": {
+    "method": "GET",
+    "path": "api/IRDropCalibration/GetIRDropCalibrationTableValues"
+  },
+  "GetAllChannelData": {
+    "method": "GET",
+    "path": "api/Plot/GetAllChannelData"
+  },
+  "GetCCLinePackets": {
+    "method": "GET",
+    "path": "api/Plot/GetCCLinePackets"
+  },
+  "GetChannelList": {
+    "method": "GET",
+    "path": "api/Plot/GetChannelList"
+  },
+  "PutLoadWaveformFile": {
+    "method": "PUT",
+    "path": "api/Plot/PutLoadWaveformFile"
+  },
+  "GetFileReadStatus": {
+    "method": "GET",
+    "path": "api/Plot/GetFileReadStatus"
+  },
+  "GetWaveformStartTime": {
+    "method": "GET",
+    "path": "api/Plot/GetWaveformStartTime"
+  },
+  "GetWaveformStopTime": {
+    "method": "GET",
+    "path": "api/Plot/GetWaveformStopTime"
+  },
+  "GetPDMessageCount": {
+    "method": "GET",
+    "path": "api/Plot/GetPDMessageCount"
+  },
+  "GetTestResults": {
+    "method": "GET",
+    "path": "api/Results/GetTestResults"
+  },
+  "PostUpdateReportInputs": {
+    "method": "POST",
+    "path": "api/ReportsGeneration/PostUpdateReportInputs"
+  },
+  "GetReportInputs": {
+    "method": "GET",
+    "path": "api/ReportsGeneration/GetReportInputs"
+  },
+  "GetTestRunInfo": {
+    "method": "GET",
+    "path": "api/ReportsGeneration/GetTestRunInfo"
+  },
+  "GetResultsFolderName": {
+    "method": "GET",
+    "path": "api/ReportsGeneration/GetResultsFolderName"
+  },
+  "GetReportFileName": {
+    "method": "GET",
+    "path": "api/ReportsGeneration/GetReportFileName"
+  },
+  "GetReportPathStatus": {
+    "method": "GET",
+    "path": "api/ReportsGeneration/GetReportPathStatus"
+  }
+}

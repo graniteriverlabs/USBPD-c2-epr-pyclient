@@ -1,0 +1,92 @@
+{
+  "version": "1.0",
+  "description": "Model config for PutPortConfigurations mapping. Update values here instead of hardcoding in code.",
+  "putPortConfigurations": {
+    "defaults": {
+      "executionMode": "InformationalMode",
+      "rerenderRandomNum": 38,
+      "portLabel": "",
+      "stateMachineType": "SRC",
+      "portBDutType": "Provider Only",
+      "fallbackCableType": "GRL-SPL EPR Test Cable 1"
+    },
+    "portADutTypeRules": [
+      {
+        "matchContainsAny": [
+          "cable"
+        ],
+        "result": "Cable"
+      },
+      {
+        "matchContainsAny": [
+          "provider/consumer"
+        ],
+        "result": "Provider Consumer"
+      },
+      {
+        "matchContainsAny": [
+          "consumer/provider"
+        ],
+        "result": "Consumer Provider"
+      },
+      {
+        "matchContainsAny": [
+          "drp",
+          "dual role"
+        ],
+        "result": "Dual Role Power[DRP]"
+      },
+      {
+        "matchContainsAny": [
+          "provider only"
+        ],
+        "result": "Provider Only"
+      },
+      {
+        "matchContainsAny": [
+          "consumer only"
+        ],
+        "result": "Consumer Only"
+      }
+    ],
+    "portADutTypeFallback": "Provider Only",
+    "requiredInputValidation": {
+      "requireCaptiveCableField": true,
+      "onMissingCaptiveCable": {
+        "logLevel": "ERROR",
+        "message": "VIF XML required field 'Captive_Cable' is missing; cannot derive cableType."
+      }
+    },
+    "cableTypeByScenario": [
+      {
+        "category": "normal",
+        "captiveCable": true,
+        "portA": "Captive Cable",
+        "portB": "Captive Cable"
+      },
+      {
+        "category": "normal",
+        "captiveCable": false,
+        "portA": "GRL-SPL EPR Test Cable 1",
+        "portB": "GRL-SPL EPR Test Cable 1"
+      },
+      {
+        "category": "cable",
+        "captiveCable": true,
+        "portA": "Captive Cable",
+        "portB": "Captive Cable"
+      },
+      {
+        "category": "cable",
+        "captiveCable": false,
+        "portA": "No Cable ( For Cable Testing )",
+        "portB": "GRL-SPL EPR Test Cable 1"
+      }
+    ],
+    "categoryDetection": {
+      "cableCategoryContainsAny": [
+        "cable"
+      ]
+    }
+  }
+}

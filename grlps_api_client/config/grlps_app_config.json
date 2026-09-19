@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "description": "GRLPS Application Configuration - C2 EPR (applications, connections, settings)",
+  "configLocation": "config/grlps_app_config.json",
+  "selectedApp": "C2-EPR",
+  "common": {
+    "sessionLogDirectory": "user_interaction/logs",
+    "sessionLogFileName": "api_framework_session.log",
+    "sessionLogLevel": "INFO",
+    "sessionLogPerRun": true,
+    "appOutputLogFileName": "app_console.log",
+    "delayBetweenApiStepsSeconds": 2,
+    "projectName": "demo-run",
+    "initialWait": 20,
+    "maxConnectionAttempts": 3,
+    "connectionTimeout": 30,
+    "apiTimeout": 60,
+    "stallTimeoutSeconds": 300,
+    "msgboxLogJsonName": "msgbox_log.json",
+    "msgboxLogDir": "user_interaction/logs",
+    "testCasesJsonName": "test_case_list.json",
+    "testCasesDir": "user_interaction/test_cases_list",
+    "testCasesRawJsonName": "test_case_list_raw.json",
+    "vifDir": "user_interaction/vif",
+    "selectedVifFile": "example_captive_cable.xml",
+    "testListToExecuteFile": "config/test_list_to_execute.json",
+    "reportExportDir": ""
+  },
+  "applications": {
+    "C2-EPR": {
+      "app_path": "\"C:\\Program Files (x86)\\GRL-C2-EPR Software\\GRL-USB-PD-C2-EPR.exe\"",
+      "app_name": "C2-EPR",
+      "known_port": 5001,
+      "ip_address": "192.0.2.50",
+      "files": {
+        "ProjectConfigurationModel": "project_config.json",
+        "C2Config": "C2config.json",
+        "Xpath": "Xpath.json"
+      }
+    }
+  }
+}

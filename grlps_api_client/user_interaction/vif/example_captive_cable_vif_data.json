@@ -1,0 +1,581 @@
+{
+  "nonComponentVIFElements": [
+    {
+      "enum": "VIF_Specification",
+      "specValue": "",
+      "decodedValue": "3.36"
+    },
+    {
+      "enum": "Vendor_Name",
+      "specValue": "",
+      "decodedValue": "ExampleVendor"
+    },
+    {
+      "enum": "Model_Part_Number",
+      "specValue": "",
+      "decodedValue": "EXAMPLE-PD-001"
+    },
+    {
+      "enum": "Product_Revision",
+      "specValue": "",
+      "decodedValue": "Rev 1.0"
+    },
+    {
+      "enum": "TID",
+      "specValue": "",
+      "decodedValue": "0"
+    },
+    {
+      "enum": "VIF_Product_Type",
+      "specValue": 0,
+      "decodedValue": "Port Product"
+    },
+    {
+      "enum": "Certification_Type",
+      "specValue": 2,
+      "decodedValue": "Silicon"
+    }
+  ],
+  "vifproductFields": [
+    {
+      "staticProductFields": [],
+      "USB4Routers": {}
+    }
+  ],
+  "vifComponents": [
+    {
+      "staticPortElements": [
+        {
+          "enum": "Port_Label",
+          "decodedValue": "0"
+        },
+        {
+          "enum": "Connector_Type",
+          "decodedValue": "Type-C®",
+          "specValue": 2
+        },
+        {
+          "enum": "USB4_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "USB_PD_Support",
+          "decodedValue": "YES",
+          "specValue": 1
+        },
+        {
+          "enum": "PD_Port_Type",
+          "decodedValue": "Consumer/Provider",
+          "specValue": 1
+        },
+        {
+          "enum": "Type_C_State_Machine",
+          "decodedValue": "SNK",
+          "specValue": 1
+        },
+        {
+          "enum": "Port_Battery_Powered",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "BC_1_2_Support",
+          "decodedValue": "None",
+          "specValue": 0
+        },
+        {
+          "enum": "Captive_Cable",
+          "decodedValue": "YES",
+          "specValue": 1
+        },
+        {
+          "enum": "Captive_Cable_Is_eMarked",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "PD_Spec_Revision_Major",
+          "decodedValue": "3",
+          "specValue": 3
+        },
+        {
+          "enum": "PD_Spec_Revision_Minor",
+          "decodedValue": "1",
+          "specValue": 1
+        },
+        {
+          "enum": "PD_Spec_Version_Major",
+          "decodedValue": "2",
+          "specValue": 2
+        },
+        {
+          "enum": "PD_Spec_Version_Minor",
+          "decodedValue": "1",
+          "specValue": 1
+        },
+        {
+          "enum": "PD_Specification_Revision",
+          "decodedValue": "Revision 3",
+          "specValue": 2
+        },
+        {
+          "enum": "SOP_Capable",
+          "decodedValue": "YES",
+          "specValue": 1
+        },
+        {
+          "enum": "SOP_P_Capable",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "SOP_PP_Capable",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "SOP_P_Debug_Capable",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "SOP_PP_Debug_Capable",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Manufacturer_Info_Supported_Port",
+          "decodedValue": "YES",
+          "specValue": 1
+        },
+        {
+          "enum": "Manufacturer_Info_VID_Port",
+          "decodedValue": "0639",
+          "specValue": 1593
+        },
+        {
+          "enum": "Manufacturer_Info_PID_Port",
+          "decodedValue": "7213",
+          "specValue": 29203
+        },
+        {
+          "enum": "Chunking_Implemented_SOP",
+          "decodedValue": "YES",
+          "specValue": 1
+        },
+        {
+          "enum": "Unchunked_Extended_Messages_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Security_Msgs_Supported_SOP",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Unconstrained_Power",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Num_Fixed_Batteries",
+          "decodedValue": "0",
+          "specValue": 0
+        },
+        {
+          "enum": "Num_Swappable_Battery_Slots",
+          "decodedValue": "0",
+          "specValue": 0
+        },
+        {
+          "enum": "ID_Header_Connector_Type_SOP",
+          "decodedValue": "USB Type-C® Plug",
+          "specValue": 3
+        },
+        {
+          "enum": "USB_Comms_Capable",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "DR_Swap_To_DFP_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "DR_Swap_To_UFP_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "VCONN_Swap_To_On_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "VCONN_Swap_To_Off_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Responds_To_Discov_SOP_UFP",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Responds_To_Discov_SOP_DFP",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Attempts_Discov_SOP",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Power_Interruption_Available",
+          "decodedValue": "No Interruption Possible",
+          "specValue": 0
+        },
+        {
+          "enum": "Data_Reset_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Enter_USB_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Can_Act_As_Host",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Can_Act_As_Device",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Supports_Audio_Accessory",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Is_VCONN_Powered_Accessory",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Is_Debug_Target_SNK",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Port_On_Hub",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Power_Source",
+          "decodedValue": "UFP-powered",
+          "specValue": 1
+        },
+        {
+          "enum": "Type_C_Sources_VCONN",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Is_Alt_Mode_Controller",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Type_C_Is_Alt_Mode_Adapter",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Product_Total_Source_Power_mW",
+          "decodedValue": "60000 mW",
+          "specValue": 60000
+        },
+        {
+          "enum": "Port_Source_Power_Type",
+          "decodedValue": "Assured",
+          "specValue": 0
+        },
+        {
+          "enum": "PD_Power_As_Source",
+          "decodedValue": "60000",
+          "specValue": 60000,
+          "units": "mW"
+        },
+        {
+          "enum": "PD_Power_As_Source_Guaranteed",
+          "decodedValue": "60000",
+          "specValue": 60000,
+          "units": "mW"
+        },
+        {
+          "enum": "EPR_Supported_As_Src",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "USB_Suspend_May_Be_Cleared",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Sends_Pings",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "FR_Swap_Type_C_Current_Capability_As_Initial_Sink",
+          "decodedValue": "FR_Swap not supported",
+          "specValue": 0
+        },
+        {
+          "enum": "Master_Port",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Has_Invariant_PDOs",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Port_Managed_Guaranteed_Type",
+          "decodedValue": "Managed Capability",
+          "specValue": 0
+        },
+        {
+          "enum": "DPS_Supported",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Num_Src_PDOs",
+          "decodedValue": "4 Src PDOs",
+          "specValue": 4
+        },
+        {
+          "enum": "PD_OC_Protection",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "PD_Power_As_Sink",
+          "decodedValue": "1500",
+          "specValue": 1500,
+          "units": "mW"
+        },
+        {
+          "enum": "EPR_Supported_As_Snk",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "No_USB_Suspend_May_Be_Set",
+          "decodedValue": "YES",
+          "specValue": 1
+        },
+        {
+          "enum": "GiveBack_May_Be_Set",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Higher_Capability_Set",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "FR_Swap_Reqd_Type_C_Current_As_Initial_Source",
+          "decodedValue": "FR_Swap not supported",
+          "specValue": 0
+        },
+        {
+          "enum": "Num_Snk_PDOs",
+          "decodedValue": "1 Snk PDO",
+          "specValue": 1
+        },
+        {
+          "enum": "Accepts_PR_Swap_As_Src",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Accepts_PR_Swap_As_Snk",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Requests_PR_Swap_As_Src",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "Requests_PR_Swap_As_Snk",
+          "decodedValue": "NO",
+          "specValue": 0
+        },
+        {
+          "enum": "FR_Swap_Supported_As_Initial_Sink",
+          "decodedValue": "NO",
+          "specValue": 0
+        }
+      ],
+      "sourcePDOs": {
+        "1": {
+          "vifFieldList": [
+            {
+              "enum": "Src_PDO_Supply_Type",
+              "decodedValue": "Fixed",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Peak_Current",
+              "decodedValue": "100% IOC",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Voltage",
+              "decodedValue": "5000",
+              "specValue": 100,
+              "units": "mV"
+            },
+            {
+              "enum": "Src_PDO_Max_Current",
+              "decodedValue": "3000",
+              "specValue": 300,
+              "units": "mA"
+            }
+          ],
+          "vifSubFieldList": []
+        },
+        "2": {
+          "vifFieldList": [
+            {
+              "enum": "Src_PDO_Supply_Type",
+              "decodedValue": "Fixed",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Peak_Current",
+              "decodedValue": "100% IOC",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Voltage",
+              "decodedValue": "9000",
+              "specValue": 180,
+              "units": "mV"
+            },
+            {
+              "enum": "Src_PDO_Max_Current",
+              "decodedValue": "3000",
+              "specValue": 300,
+              "units": "mA"
+            }
+          ],
+          "vifSubFieldList": []
+        },
+        "3": {
+          "vifFieldList": [
+            {
+              "enum": "Src_PDO_Supply_Type",
+              "decodedValue": "Fixed",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Peak_Current",
+              "decodedValue": "100% IOC",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Voltage",
+              "decodedValue": "15000",
+              "specValue": 300,
+              "units": "mV"
+            },
+            {
+              "enum": "Src_PDO_Max_Current",
+              "decodedValue": "3000",
+              "specValue": 300,
+              "units": "mA"
+            }
+          ],
+          "vifSubFieldList": []
+        },
+        "4": {
+          "vifFieldList": [
+            {
+              "enum": "Src_PDO_Supply_Type",
+              "decodedValue": "Fixed",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Peak_Current",
+              "decodedValue": "100% IOC",
+              "specValue": 0
+            },
+            {
+              "enum": "Src_PDO_Voltage",
+              "decodedValue": "20000",
+              "specValue": 400,
+              "units": "mV"
+            },
+            {
+              "enum": "Src_PDO_Max_Current",
+              "decodedValue": "3000",
+              "specValue": 300,
+              "units": "mA"
+            }
+          ],
+          "vifSubFieldList": []
+        }
+      },
+      "sinkPDOs": {
+        "1": {
+          "vifFieldList": [
+            {
+              "enum": "Snk_PDO_Supply_Type",
+              "decodedValue": "Fixed",
+              "specValue": 0
+            },
+            {
+              "enum": "Snk_PDO_Voltage",
+              "decodedValue": "5000",
+              "specValue": 100,
+              "units": "mV"
+            },
+            {
+              "enum": "Snk_PDO_Op_Current",
+              "decodedValue": "300",
+              "specValue": 30,
+              "units": "mA"
+            }
+          ],
+          "vifSubFieldList": []
+        }
+      },
+      "sVIDs": {},
+      "cableSVIDs": {},
+      "OptionalContent": {
+        "DisplayPort_Product_Summary": {},
+        "SOP_DP_Capabilities": {},
+        "SOPP_DisplayPort_Capabilities": {},
+        "DisplayPort_Status": {},
+        "VIF_App": {}
+      }
+    }
+  ]
+}
