@@ -28,13 +28,13 @@ client.run_testcases()
 You do **not** need to clone this repository.
 
 ```powershell
-pip install https://github.com/GRL-ORG/usbpd-c2-epr-pyclient/releases/download/v1.6.1.4/usbpd_c2_epr_pyclient-1.6.1.4-py3-none-any.whl
+pip install https://github.com/graniteriverlabs/USBPD-c2-epr-pyclient/releases/download/v1.6.1.4/usbpd_c2_epr_pyclient-1.6.1.4-py3-none-any.whl
 ```
 
 Or install the latest source directly:
 
 ```powershell
-pip install git+https://github.com/GRL-ORG/usbpd-c2-epr-pyclient.git
+pip install git+https://github.com/graniteriverlabs/USBPD-c2-epr-pyclient.git
 ```
 
 > **Names:** the distribution is `usbpd-c2-epr-pyclient`; the module you import is
