@@ -116,8 +116,9 @@ Edit `config\test_list_to_execute.json` — a plain list of names:
 ]
 ```
 
-> Names must match `test_case_list.json` **exactly**. Copy and paste them; a
-> typo means the test is skipped silently.
+> Names must match `test_case_list.json` **exactly** — copy and paste them.
+> Anything that doesn't match is rejected before the run starts, naming the
+> offending entries.
 
 ### 6. Run
 
@@ -143,26 +144,40 @@ All three return `0` on success and `1` on failure, so they drop straight into C
 Every setting can come from the config file **or** from your code. The config
 file suits a fixed bench; arguments suit a script that varies per run.
 
+Every method returns a `dict` with a `success` flag rather than raising, so
+check each step — a failed VIF load otherwise lets the run continue against
+whatever the application had loaded before.
+
 ```python
 from grlps_api_client import GRLPSApiClient
 
 client = GRLPSApiClient()
+try:
+    client.start_app()
 
-client.start_app()
-connect = client.connect()
-if not connect.get("connectionSetupSuccess"):
-    raise SystemExit("controller not reachable")
+    connect = client.connect()
+    if not connect.get("connectionSetupSuccess"):
+        raise SystemExit("controller not reachable: {0}".format(
+            connect.get("connectionSetupError")))
 
-client.create_project("MyProject")
-client.load_vif("MyDevice.xml")
+    client.create_project("MyProject")
 
-client.send_test_list([
-    "TEST.PD.PHY.ALL.1 Transmit Bit Rate and the Drift",
-])
+    vif = client.load_vif("MyDevice.xml")
+    if not vif.get("success"):
+        raise SystemExit("VIF not loaded: {0}".format(vif.get("message")))
+    print("{0} test cases available".format(vif.get("testCaseCount")))
 
-result = client.run_testcases()
-client.run_report_flow()
-client.stop_app()
+    sent = client.send_test_list([
+        "TEST.PD.PHY.ALL.1 Transmit Bit Rate and the Drift",
+    ])
+    if not sent.get("success"):
+        raise SystemExit("test list rejected: {0}".format(sent.get("message")))
+
+    run = client.run_testcases()
+    report = client.run_report_flow()
+    print("report:", report.get("reportExport", {}).get("destination"))
+finally:
+    client.stop_app()
 ```
 
 | Setting | Config file | In code |
@@ -191,6 +206,7 @@ your-project-folder\
 └── user_interaction\
     ├── vif\                        put your VIF files here
     ├── test_cases_list\            generated: available tests
+    ├── reports_export\             generated: one subfolder per run
     └── logs\                       generated: session + app logs
 ```
 
@@ -219,9 +235,10 @@ The client enforces Windows + CPython 3.11 or newer. Check with `python -V`.
 **`no matching distribution found`**
 Your Python is older than 3.11. The package declares `requires-python = ">=3.11"`.
 
-**A test name in `test_list_to_execute.json` never runs**
-It does not match `test_case_list.json` exactly. Re-run `c2epr-testcases`
-and copy the name verbatim.
+**`test list rejected: ... not in the test catalog`**
+A name does not match `test_case_list.json` exactly. Names are checked before
+anything is sent, so nothing ran. Re-run `c2epr-testcases` to refresh the
+catalog for your VIF and copy the names verbatim.
 
 **App does not start**
 Check `applications.C2-EPR.app_path` in `grlps_app_config.json`, and that the
@@ -234,8 +251,10 @@ runs to completion and returns inconclusive results.
 
 Logs for every run are written to `user_interaction\logs\`.
 
-Reports are copied to `common.reportExportDir`, one subfolder per run, so an
-earlier run's report is never replaced by a later one.
+Reports are copied to `common.reportExportDir` - `user_interaction\reports_export\`
+by default - one subfolder per run, so an earlier run's report is never replaced
+by a later one. A relative path is resolved inside the workspace; set an
+absolute path to collect reports elsewhere.
 
 ## Documentation
 

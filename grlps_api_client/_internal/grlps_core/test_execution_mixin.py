@@ -73,6 +73,35 @@ class TestExecutionMixin:
                 )
         return payload
 
+    def _get_known_test_names(self) -> Optional[List[str]]:
+        """
+        Names from the saved catalog, or None when it has not been fetched yet.
+
+        None and an empty list mean different things here: None is "cannot
+        check", which must not be treated as "nothing is valid".
+        """
+        try:
+            from test_cases import TestCasesFramework
+
+            path = TestCasesFramework(
+                logger=self.logger, config_manager=self._config_manager
+            ).get_file_path()
+        except Exception:
+            return None
+        if not path or not os.path.isfile(path):
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            self.logger.debug("[test_execution] Could not read test catalog %s: %s", path, e)
+            return None
+        if isinstance(data, list):
+            return [str(x) for x in data]
+        if isinstance(data, dict) and isinstance(data.get("testList"), list):
+            return [str(x) for x in data["testList"]]
+        return None
+
     def _get_test_list_to_execute_from_config(self) -> List[str]:
         common = self._get_common()
         path = common.get("testListToExecuteFile") or "config/test_list_to_execute.json"
@@ -120,6 +149,25 @@ class TestExecutionMixin:
                 "message": "No tests to execute (config test list empty/missing).",
             }
 
+        # A name the controller does not know is accepted and then simply never
+        # runs, which looks identical to a test that was skipped. Catch it here
+        # while the catalog is on disk. Skipped when the catalog is absent.
+        known = self._get_known_test_names()
+        if known:
+            unknown = [name for name in resolved_list if name not in set(known)]
+            if unknown:
+                return {
+                    "success": False,
+                    "requestedCount": requested_count,
+                    "unknownTests": unknown,
+                    "message": (
+                        "{0} test name(s) are not in the test catalog for the loaded "
+                        "VIF, so they would never run: {1}. Names must match exactly - "
+                        "run c2epr-testcases (or load_vif) to refresh the catalog and "
+                        "copy them from there.".format(len(unknown), ", ".join(unknown[:5]))
+                    ),
+                }
+
         post_res = self.call_api(ApiName.POST_TEST_LIST_TO_EXECUTE, data=resolved_list)
         payload = {
             "success": bool(post_res.is_success),
@@ -128,6 +176,10 @@ class TestExecutionMixin:
             "error": post_res.error if not post_res.is_success else None,
         }
         if post_res.is_success:
+            # Remember what is actually staged on the controller. run_testcases
+            # reports progress against this; reading the config file there would
+            # track a different set of tests whenever an explicit list is passed.
+            self._staged_test_list = list(resolved_list)
             print(
                 f"  Test list: {requested_count} test(s) sent to execute (PostTestListToExecute)",
                 file=sys.stderr,
@@ -167,7 +219,13 @@ class TestExecutionMixin:
         except Exception:
             pass
 
-        resolved_test_list = self._get_test_list_to_execute_from_config()
+        # Track the list send_test_list actually posted. Falling back to the
+        # config file is only right when no list was staged in this session -
+        # otherwise an explicit send_test_list([...]) would be reported against
+        # a different set of names, and the tests that really ran would be
+        # filtered out of the progress display entirely.
+        staged = getattr(self, "_staged_test_list", None)
+        resolved_test_list = staged if staged else self._get_test_list_to_execute_from_config()
         expected_total = len(resolved_test_list) if isinstance(resolved_test_list, list) else 0
         expected_names = resolved_test_list if isinstance(resolved_test_list, list) else []
         progress_format_mode = (

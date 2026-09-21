@@ -136,9 +136,14 @@ class ReportFrameworkService:
     def _get_report_export_dir(self) -> str:
         common = self._core._get_common() or {}
         path = str(common.get("reportExportDir") or "").strip()
-        if path:
-            return os.path.abspath(path)
-        return ""
+        if not path:
+            return ""
+        if not os.path.isabs(path):
+            # A relative export path belongs to the workspace. Resolving it
+            # against the current directory instead would scatter reports
+            # wherever the command happened to be launched from.
+            return os.path.abspath(os.path.join(self._core._project_root(), path))
+        return os.path.abspath(path)
 
     def _fallback_export_dir(self) -> str:
         """
