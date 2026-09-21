@@ -24,7 +24,8 @@
     "vifDir": "user_interaction/vif",
     "selectedVifFile": "example_captive_cable.xml",
     "testListToExecuteFile": "config/test_list_to_execute.json",
-    "reportExportDir": "user_interaction/reports_export"
+    "reportExportDir": "user_interaction/reports_export",
+    "reportPdfWaitSeconds": 30
   },
   "applications": {
     "C2-EPR": {

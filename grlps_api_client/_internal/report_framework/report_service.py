@@ -14,9 +14,89 @@ from api import ApiName
 from api.result import api_result_to_json_dict
 
 
+# The application writes the HTML report first and the PDF a moment later, so
+# copying as soon as the HTML exists finds no PDF - intermittently, depending on
+# how quickly the PDF is rendered. Overridable via common.reportPdfWaitSeconds.
+DEFAULT_REPORT_PDF_WAIT_SECONDS = 30.0
+
+# A PDF that has only just appeared may still be being written. Copy it once its
+# size has held steady for this long.
+_PDF_STABLE_SECONDS = 1.0
+
+_PDF_POLL_INTERVAL_SECONDS = 0.5
+
+
 class ReportFrameworkService:
     def __init__(self, core):
         self._core = core
+
+    def _pdf_wait_seconds(self) -> float:
+        common = self._core._get_common() or {}
+        try:
+            return max(0.0, float(common.get("reportPdfWaitSeconds", DEFAULT_REPORT_PDF_WAIT_SECONDS)))
+        except (TypeError, ValueError):
+            return DEFAULT_REPORT_PDF_WAIT_SECONDS
+
+    def _find_pdf(self, folder: str, preferred_name: Optional[str]) -> Optional[str]:
+        """Preferred name first, then any .pdf in the folder."""
+        if preferred_name:
+            candidate = os.path.join(folder, preferred_name)
+            if os.path.isfile(candidate):
+                return candidate
+        try:
+            names = sorted(
+                name
+                for name in os.listdir(folder)
+                if name.lower().endswith(".pdf")
+                and os.path.isfile(os.path.join(folder, name))
+            )
+        except OSError:
+            return None
+        return os.path.join(folder, names[0]) if names else None
+
+    def _wait_for_stable_size(self, path: str, deadline: float) -> None:
+        """Block until the file stops growing, so a partial PDF is not copied."""
+        last_size = -1
+        steady_since = None
+        while time.time() < deadline:
+            try:
+                size = os.path.getsize(path)
+            except OSError:
+                return
+            if size == last_size and size > 0:
+                if steady_since is None:
+                    steady_since = time.time()
+                elif time.time() - steady_since >= _PDF_STABLE_SECONDS:
+                    return
+            else:
+                last_size = size
+                steady_since = None
+            time.sleep(_PDF_POLL_INTERVAL_SECONDS)
+
+    def _wait_for_pdf(self, folder: str, preferred_name: Optional[str]) -> Optional[str]:
+        """
+        Return a PDF from ``folder``, waiting for the application to write it.
+
+        Returns None if none appears within common.reportPdfWaitSeconds.
+        """
+        wait_seconds = self._pdf_wait_seconds()
+        deadline = time.time() + wait_seconds
+        announced = False
+        while True:
+            found = self._find_pdf(folder, preferred_name)
+            if found:
+                self._wait_for_stable_size(found, deadline + _PDF_STABLE_SECONDS * 2)
+                return found
+            if time.time() >= deadline:
+                return None
+            if not announced:
+                self._core.logger.info(
+                    "[report_export] html is ready; waiting up to %.0fs for the pdf in %s",
+                    wait_seconds,
+                    folder,
+                )
+                announced = True
+            time.sleep(_PDF_POLL_INTERVAL_SECONDS)
 
     def _extract_response_data(self, payload: Dict[str, Any]) -> Any:
         """
@@ -207,33 +287,85 @@ class ReportFrameworkService:
                     return full_path
         return ""
 
+    @staticmethod
+    def _run_folder_prefix(folder_name: Optional[str]) -> str:
+        """
+        Everything up to the time part: ``test-run_2026_09_21-03_21_44`` ->
+        ``test-run_2026_09_21-``.
+
+        GetResultsFolderName reports the run folder with a 12-hour clock while
+        the application creates the directory with a 24-hour one, so the exact
+        name usually does not exist on disk. Matching on this prefix keeps the
+        fallback inside the same project and date.
+        """
+        name = os.path.basename(str(folder_name or "").rstrip("\\/"))
+        head, sep, _tail = name.rpartition("-")
+        return (head + sep) if sep else name
+
     def _resolve_existing_source_folder(
-        self, run_info_payload: Dict[str, Any], preferred_folder: str
+        self,
+        run_info_payload: Dict[str, Any],
+        preferred_folder: str,
+        results_folder_name: Optional[str] = None,
     ) -> str:
         """
-        Ensure selected source folder exists. If not, fallback to latest existing
-        folder from GetTestRunInfo entries.
+        Ensure the selected source folder exists, and if not, pick the run it
+        belongs to rather than whichever folder was touched most recently.
         """
         if preferred_folder and os.path.isdir(preferred_folder):
             return preferred_folder
+
+        candidates = []
         entries = self._extract_response_data(run_info_payload)
         if isinstance(entries, list):
-            existing = []
             for row in entries:
                 if not isinstance(row, dict):
                     continue
                 full_path = str(row.get("resultsFolder") or "").strip()
-                if full_path and os.path.isdir(full_path):
-                    existing.append(full_path)
-            if existing:
-                existing.sort(key=lambda p: os.path.getmtime(p), reverse=True)
-                fallback = existing[0]
+                if full_path and os.path.isdir(full_path) and full_path not in candidates:
+                    candidates.append(full_path)
+
+        # The directory the application really created is often missing from
+        # run-info (the clock-format difference above), so look at siblings of
+        # the folder we expected too.
+        if preferred_folder:
+            parent = os.path.dirname(preferred_folder.rstrip("\\/"))
+            try:
+                for name in os.listdir(parent):
+                    full = os.path.join(parent, name)
+                    if os.path.isdir(full) and full not in candidates:
+                        candidates.append(full)
+            except OSError:
+                pass
+
+        if not candidates:
+            return preferred_folder
+
+        prefix = self._run_folder_prefix(results_folder_name or preferred_folder)
+        if prefix:
+            same_run = [
+                path
+                for path in candidates
+                if os.path.basename(path.rstrip("\\/")).startswith(prefix)
+            ]
+            if same_run:
+                same_run.sort(key=lambda p: os.path.getmtime(p), reverse=True)
                 self._core.logger.info(
-                    "[report_export] preferred source folder missing; using latest existing run folder: %s",
-                    fallback,
+                    "[report_export] '%s' is not on disk; using the matching run "
+                    "folder: %s",
+                    results_folder_name or preferred_folder,
+                    same_run[0],
                 )
-                return fallback
-        return preferred_folder
+                return same_run[0]
+
+        candidates.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        self._core.logger.warning(
+            "[report_export] no run folder matches '%s'; falling back to the most "
+            "recently modified one, which may belong to a different run: %s",
+            results_folder_name or preferred_folder,
+            candidates[0],
+        )
+        return candidates[0]
 
     def _copy_report_artifacts(
         self,
@@ -262,7 +394,9 @@ class ReportFrameworkService:
             )
 
         source_folder = self._resolve_report_source_folder(run_info_payload, results_folder_name)
-        source_folder = self._resolve_existing_source_folder(run_info_payload, source_folder)
+        source_folder = self._resolve_existing_source_folder(
+            run_info_payload, source_folder, results_folder_name
+        )
         if not source_folder:
             self._core.logger.warning(
                 "[report_export] Could not resolve source folder from API payloads. "
@@ -371,42 +505,31 @@ class ReportFrameworkService:
                     html_copied = dst_html
                     self._core.logger.info("[report_export] copied html: %s", dst_html)
 
-                # Also copy PDF with the same base name when available.
+                # The PDF is written after the HTML, so wait for it rather than
+                # checking once and giving up a millisecond later.
                 if str(report_file_name).lower().endswith(".html"):
                     pdf_name = str(report_file_name)[:-5] + ".pdf"
-                    src_pdf = os.path.join(effective_source_folder, pdf_name)
-                    if os.path.isfile(src_pdf):
-                        dst_pdf = os.path.join(run_dest, pdf_name)
+                    src_pdf = self._wait_for_pdf(effective_source_folder, pdf_name)
+                    if src_pdf:
+                        found_name = os.path.basename(src_pdf)
+                        dst_pdf = os.path.join(run_dest, found_name)
                         shutil.copy2(src_pdf, dst_pdf)
                         pdf_copied = dst_pdf
-                        self._core.logger.info("[report_export] copied pdf (same basename): %s", dst_pdf)
+                        self._core.logger.info(
+                            "[report_export] copied pdf (%s): %s",
+                            "same basename" if found_name == pdf_name else "fallback name",
+                            dst_pdf,
+                        )
                     else:
-                        # Fallback: some builds generate a differently named PDF.
-                        try:
-                            pdf_candidates = [
-                                name
-                                for name in os.listdir(effective_source_folder)
-                                if name.lower().endswith(".pdf")
-                                and os.path.isfile(os.path.join(effective_source_folder, name))
-                            ]
-                        except Exception:
-                            pdf_candidates = []
-                        if pdf_candidates:
-                            pdf_candidates.sort()
-                            fallback_pdf = pdf_candidates[0]
-                            src_pdf = os.path.join(effective_source_folder, fallback_pdf)
-                            dst_pdf = os.path.join(run_dest, fallback_pdf)
-                            shutil.copy2(src_pdf, dst_pdf)
-                            pdf_copied = dst_pdf
-                            self._core.logger.info(
-                                "[report_export] copied pdf (fallback name): %s",
-                                dst_pdf,
-                            )
-                        else:
-                            self._core.logger.info(
-                                "[report_export] no pdf found in source folder: %s",
-                                effective_source_folder,
-                            )
+                        # An export without the PDF is incomplete, so this is a
+                        # warning rather than an informational line.
+                        self._core.logger.warning(
+                            "[report_export] no pdf appeared within %.0fs in %s - "
+                            "raise common.reportPdfWaitSeconds if the application "
+                            "needs longer to render it.",
+                            self._pdf_wait_seconds(),
+                            effective_source_folder,
+                        )
 
             return {
                 "enabled": True,
