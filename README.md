@@ -10,7 +10,7 @@ from grlps_api_client import GRLPSApiClient
 client = GRLPSApiClient()
 client.start_app()
 client.connect()
-client.load_vif("my_device.xml")
+client.load_vif("MyDevice.xml")
 client.run_testcases()
 ```
 
@@ -28,7 +28,7 @@ client.run_testcases()
 You do **not** need to clone this repository.
 
 ```powershell
-pip install https://github.com/graniteriverlabs/USBPD-c2-epr-pyclient/releases/download/v1.6.1.4/usbpd_c2_epr_pyclient-1.6.1.4-py3-none-any.whl
+pip install https://github.com/graniteriverlabs/USBPD-c2-epr-pyclient/releases/download/v1.6.1.2/usbpd_c2_epr_pyclient-1.6.1.2-py3-none-any.whl
 ```
 
 Or install the latest source directly:
@@ -45,19 +45,22 @@ pip install git+https://github.com/graniteriverlabs/USBPD-c2-epr-pyclient.git
 
 ### 1. Create your workspace
 
+Make a folder for this bench or project, and initialise it there:
+
 ```powershell
+mkdir C:\benches\my-dut
+cd C:\benches\my-dut
 c2epr-init
 ```
 
-This creates a folder you own and copies the default config into it:
+`c2epr-init` copies the default config into **the directory you are standing
+in**, then prints what still needs setting.
 
-```
-C:\Users\<you>\AppData\Local\GRLPSApiClient\
-```
+Run `c2epr-testcases` and `c2epr-run` from this same directory. Each folder is a
+self-contained setup, so a second device just means a second folder.
 
-The command prints the path and tells you what still needs setting. **Edit files
-there, not in site-packages.** Your edits survive upgrades — the installer never
-overwrites a file that already exists.
+Your edits are never overwritten — re-running `c2epr-init` only restores files
+that are missing, so upgrades keep your settings.
 
 ### 2. Set your controller address
 
@@ -74,7 +77,7 @@ Check `app_path` points at your GRLPS C2-EPR installation while you are there.
 Copy your VIF XML into the workspace and select it:
 
 ```powershell
-copy C:\path\to\MyDevice.xml %LOCALAPPDATA%\GRLPSApiClient\user_interaction\vif\
+copy C:\path\to\MyDevice.xml user_interaction\vif\
 ```
 
 ```json
@@ -167,13 +170,15 @@ client.stop_app()
 
 Every method returns a JSON-serialisable `dict`. See
 [`examples/`](examples/) for complete scripts, and the
-[programmer guide](grlps_api_client/docs/GRLPSApiClient_PROGRAMMER_GUIDE.md)
-for the full method reference.
+[user guide](grlps_api_client/docs/GRLPSApiClient_USER_GUIDE.md) for the full
+method reference.
 
 ## The workspace
 
+Everything lives in the directory where you ran `c2epr-init`:
+
 ```
-%LOCALAPPDATA%\GRLPSApiClient\
+your-project-folder\
 ├── config\
 │   ├── grlps_app_config.json       IP, VIF choice, timeouts, paths
 │   ├── test_list_to_execute.json   which tests to run
@@ -186,17 +191,18 @@ for the full method reference.
     └── logs\                       generated: session + app logs
 ```
 
-Move it somewhere else if you prefer:
+To run the commands from somewhere else, point them at the folder:
 
 ```powershell
-set GRLPS_API_HOME=D:\benches\grl
-c2epr-init
+set GRLPS_API_PROJECT_ROOT=C:\benches\my-dut
 ```
 
 | Variable | Effect |
 |---|---|
-| `GRLPS_API_HOME` | where the per-user workspace is created |
-| `GRLPS_API_PROJECT_ROOT` | use this directory as-is; nothing is copied into it |
+| `GRLPS_API_PROJECT_ROOT` | use this folder as the workspace, wherever you run from |
+| `GRLPS_API_HOME` | where `c2epr-init` creates the workspace, instead of the current directory |
+
+Importing the library never creates files — only `c2epr-init` writes anything.
 
 ## Troubleshooting
 
@@ -225,7 +231,6 @@ Logs for every run are written to `user_interaction\logs\`.
 | Guide | Covers |
 |---|---|
 | [User guide](grlps_api_client/docs/GRLPSApiClient_USER_GUIDE.md) | every method, full request/response examples |
-| [Programmer guide](grlps_api_client/docs/GRLPSApiClient_PROGRAMMER_GUIDE.md) | architecture and extension points |
 | [Installer guide](grlps_api_client/docs/GRLPSApiClient_INSTALLER_END_USER_GUIDE.md) | the standalone `.exe` installer |
 
 The same guides ship inside the package. Find them with:
@@ -233,14 +238,6 @@ The same guides ship inside the package. Find them with:
 ```python
 from grlps_api_client import docs_dir
 print(docs_dir())
-```
-
-## Building from source
-
-```powershell
-pip install build
-python -m build --wheel
-pip install dist\usbpd_c2_epr_pyclient-1.6.1.4-py3-none-any.whl
 ```
 
 ## License

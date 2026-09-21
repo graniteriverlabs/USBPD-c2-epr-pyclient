@@ -1,12 +1,10 @@
-# Template. tools/build_wheel.py copies this into the staging tree and
-# substitutes 1.6.1.4 from tools/wheel_build_config.json.
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "usbpd-c2-epr-pyclient"
-version = "1.6.1.4"
+version = "1.6.1.2"
 description = "GRLPS C2-EPR automation client - drive the GRL Platform Solutions USB-PD C2-EPR application over its local HTTP API."
 readme = "README.md"
 # Kept in step with _MIN_PYTHON in the facade, so pip and the import-time check
@@ -31,8 +29,8 @@ dependencies = ["requests>=2.25.0"]
 
 [project.scripts]
 c2epr-init = "grlps_api_client._bootstrap:main"
-c2epr-testcases = "grlps_api_client.get_testcases_only:cli"
-c2epr-run = "grlps_api_client.sample_run:cli"
+c2epr-testcases = "grlps_api_client._cli:testcases"
+c2epr-run = "grlps_api_client._cli:run"
 
 [tool.setuptools.packages.find]
 where = ["."]

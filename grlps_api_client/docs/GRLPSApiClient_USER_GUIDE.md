@@ -4,6 +4,16 @@ End-user guide for `grlps_api_client.py` and the recommended sample script `samp
 
 **Installed from the Windows setup program?** Start with **`GRLPSApiClient_INSTALLER_END_USER_GUIDE.md`** (how to install, run `run_sample.bat`, and open the install folder). This file focuses on configuration and API usage after Python is available.
 
+**Installed with pip?** You have no `sample_run.py` to run. Use the console commands instead, from the folder you initialised with `c2epr-init`:
+
+| This guide says | With a pip install, run |
+|---|---|
+| `python sample_run.py` | `c2epr-run` |
+| `python get_testcases_only.py` | `c2epr-testcases` |
+| (set up the project folder) | `c2epr-init` |
+
+Everything else below — the configuration files, the methods and their return values — applies unchanged. The commands are thin wrappers around the same calls.
+
 All public methods that return a **dict** use JSON-friendly values so you can use `json.dumps(..., ensure_ascii=False)` for logs or files.
 
 ---
@@ -13,11 +23,11 @@ All public methods that return a **dict** use JSON-friendly values so you can us
 | Requirement | Value |
 |-------------|--------|
 | OS | Windows |
-| Python | **3.14.x** (major.minor must be 3.14) |
+| Python | **3.11 or newer** |
 
 On import, `grlps_api_client` prints a line to **stderr** when the check passes, for example:
 
-`[grlps_api_init] Runtime check passed | expected: Windows + Python 3.14.x | current: Python 3.14.3 on win32`
+`[grlps_api_init] Runtime check passed | expected: Windows + Python 3.11 or newer | current: Python 3.14.7 on win32`
 
 If incompatible, a `RuntimeError` is raised before your script runs further.
 
@@ -216,7 +226,7 @@ The following matches a verified end-to-end run (2026-03-28); exact paths, IPs, 
 
 | Check | Meaning |
 |--------|---------|
-| `[grlps_api_init] Runtime check passed` | Windows + Python 3.14.x OK |
+| `[grlps_api_init] Runtime check passed` | Windows + Python 3.11 or newer OK |
 | `connectionSetupSuccess`: **true** in `connect` payload | Tester reachable at `applications.<app>.ip_address` |
 | `create_project` → `success`: **true** | Project folder created on controller |
 | After VIF: `Completed: GetTestCaseList` | Post-VIF test list fetch ran (default `load_vif` behavior) |
@@ -894,8 +904,8 @@ Runs, in order: `PostUpdateReportInputs`, `GetReportInputs`, `GetTestRunInfo`, `
   "success": true,
   "destination": "E:\\Reports\\C2EPR",
   "requestedDestination": "E:\\Reports\\C2EPR",
-  "sourceFolder": "C:\\GRL\\USBPD-C2-Browser-App\\Report\\TempReport\\C2EPR\\Demo_2026_03_28-16_22_59\\New_Run1_Rep0_2026_03_28-04_22_59",
-  "resolvedRunFolder": "C:\\GRL\\USBPD-C2-Browser-App\\Report\\TempReport\\C2EPR\\Demo_2026_03_28-16_22_59",
+  "sourceFolder": "C:\\GRL-C2-EPR\\Report\\TempReport\\C2EPR\\Demo_2026_03_28-16_22_59\\New_Run1_Rep0_2026_03_28-04_22_59",
+  "resolvedRunFolder": "C:\\GRL-C2-EPR\\Report\\TempReport\\C2EPR\\Demo_2026_03_28-16_22_59",
   "copiedRunFolder": "E:\\Reports\\C2EPR\\New_Run1_Rep0_2026_03_28-04_22_59",
   "copiedReportHtml": "E:\\Reports\\C2EPR\\GRL_USB_PD_Report_Run_1_2026_03_28.html",
   "copiedReportPdf": "E:\\Reports\\C2EPR\\GRL_USB_PD_Report_Run_1_2026_03_28.pdf",

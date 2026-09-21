@@ -14,7 +14,7 @@ import os
 import sys
 from pathlib import Path
 
-__version__ = "1.6.1.4"
+__version__ = "1.6.1.2"
 
 _PKG_DIR = Path(__file__).resolve().parent
 _INTERNAL_DIR = _PKG_DIR / "_internal"
@@ -34,12 +34,18 @@ from ._bootstrap import (  # noqa: E402
     describe_workspace,
     docs_dir,
     ensure_workspace,
+    is_initialised,
+    resolve_workspace,
 )
 
 # Must happen before the facade is imported. The facade defaults the project root
 # to its own directory, which under pip is site-packages - not writable, and not
 # where the customer's config belongs.
-os.environ.setdefault("GRLPS_API_PROJECT_ROOT", str(ensure_workspace()))
+#
+# This resolves only; it never creates or seeds files. Importing the package must
+# not write into whatever directory the caller happens to be in - seeding is the
+# job of ``c2epr-init``.
+os.environ.setdefault("GRLPS_API_PROJECT_ROOT", str(resolve_workspace()))
 
 from ._facade import GRLPSApiClient  # noqa: E402
 
@@ -49,5 +55,7 @@ __all__ = [
     "describe_workspace",
     "docs_dir",
     "ensure_workspace",
+    "is_initialised",
+    "resolve_workspace",
     "__version__",
 ]

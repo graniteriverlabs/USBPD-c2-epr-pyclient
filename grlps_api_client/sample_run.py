@@ -40,7 +40,7 @@ def main() -> dict:
     #   project_name=None -> uses common.projectName from grlps_app_config.json
     # Example explicit input (reference only):
     # create_project_payload = client.create_project(project_name="Demo")
-    create_project_payload = client.create_project(project_name="Demo")
+    create_project_payload = client.create_project()
     _print_payload("create_project", create_project_payload)
 
     # load_vif defaults:

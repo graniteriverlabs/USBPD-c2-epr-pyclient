@@ -1,11 +1,18 @@
-"""
+r"""
 List the test cases a VIF makes available, without running anything.
 
 The catalog depends on the VIF, so the VIF has to be loaded first. No test is
 executed by this script.
 
-    python examples/fetch_test_catalog.py
-    python examples/fetch_test_catalog.py MyDevice.xml
+Run it from a folder you have already set up:
+
+    cd C:\benches\my-dut
+    c2epr-init                          # once, to set the folder up
+    python <path to>\fetch_test_catalog.py
+    python <path to>\fetch_test_catalog.py MyDevice.xml
+
+`c2epr-testcases` does the same thing as a single command; this script is here
+to show the calls behind it.
 """
 from __future__ import annotations
 
@@ -13,12 +20,21 @@ import json
 import sys
 from pathlib import Path
 
-from grlps_api_client import GRLPSApiClient
+from grlps_api_client import GRLPSApiClient, is_initialised, resolve_workspace
 
 DEFAULT_VIF = "example_captive_cable.xml"
 
 
 def main() -> int:
+    workspace = resolve_workspace()
+    if not is_initialised(workspace):
+        print(
+            "No GRLPS C2-EPR workspace in {0}\n"
+            "Run 'c2epr-init' there first.".format(workspace),
+            file=sys.stderr,
+        )
+        return 1
+
     vif_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_VIF
     client = GRLPSApiClient()
 

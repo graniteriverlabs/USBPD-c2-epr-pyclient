@@ -4,37 +4,30 @@ Notable changes to this package. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version numbers track
 the GRLPS C2-EPR release they were built against.
 
-## 1.6.1.4 - 2026-09-19
+## 1.6.1.2 - 2026-09-21
 
 Initial public release of the GRL Platform Solutions C2-EPR Python client.
 
-### Changed - BREAKING
+### Added
 
-- The console commands were renamed. Scripts and CI jobs calling the old names
-  must be updated:
+- Console commands `c2epr-init`, `c2epr-testcases` and `c2epr-run`. Each returns
+  exit code `0` on success and `1` on failure, so they drop straight into CI.
+- Library use: `from grlps_api_client import GRLPSApiClient`.
+- `c2epr-init` sets a project folder up in the directory you run it in, so each
+  bench or device keeps its own config, VIF files and logs side by side. Nothing
+  is written anywhere else, and re-running it only restores missing files, so
+  your settings survive an upgrade.
+- The user guide and installer guide ship inside the package; locate them with
+  `docs_dir()`.
+- A generic `example_captive_cable.xml` VIF, so the full flow runs before you
+  supply your own.
 
-  | Before | Now |
-  |---|---|
-  | `grlps-api-client-init` | `c2epr-init` |
-  | `grlps-get-testcases` | `c2epr-testcases` |
-  | `grlps-sample-run` | `c2epr-run` |
+### Notes
 
-- The distribution is now `usbpd-c2-epr-pyclient` (previously
-  `grlps-api-client`). Uninstall the old name before installing this one:
-  `pip uninstall grlps-api-client`.
-
-The **import name is unchanged** - `from grlps_api_client import GRLPSApiClient`
-keeps working, so Python code needs no edits.
-
-### Fixed
-
-- `c2epr-run` and `c2epr-testcases` exited with status 1 after a successful run,
-  and printed their result dictionary to stderr. Both now return a proper exit
-  code (`0` success, `1` failure).
-
-### Changed
-
-- Supported Python widened from 3.14 only to **3.11 or newer**. The package
-  contains no version-specific syntax, so one pure-Python `py3-none-any` wheel
-  covers 3.11, 3.12, 3.13 and 3.14 with no build toolchain required.
-- The bundled example VIF is a generic `example_captive_cable.xml`.
+- Runs on Windows with CPython 3.11 or newer. A single pure-Python
+  `py3-none-any` wheel covers 3.11, 3.12, 3.13 and 3.14 - no build toolchain
+  and no per-version wheels.
+- Install from a GitHub Release asset or with `pip install git+https://...`.
+  This package is not published to PyPI.
+- Importing the package never creates files. Only `c2epr-init` writes anything,
+  so `import grlps_api_client` from any directory leaves it untouched.

@@ -1,20 +1,24 @@
-"""
+r"""
 Run a specific list of test cases, with everything passed explicitly.
 
-Nothing here reads test_list_to_execute.json or common.selectedVifFile - the
-VIF and the test names come from this file, which is what you want when one
-script drives several devices.
+Nothing here reads test_list_to_execute.json or common.selectedVifFile - the VIF
+and the test names come from this file, which is what you want when one script
+drives several devices.
 
-    python examples/run_selected_tests.py
+Run it from a folder you have already set up:
 
-Set your controller IP in the workspace config first:
-    c2epr-init        # prints the workspace path
+    cd C:\benches\my-dut
+    c2epr-init                          # once, to set the folder up
+    python <path to>\run_selected_tests.py
+
+Set your controller address in config\grlps_app_config.json before the first
+run, or the connection step fails.
 """
 from __future__ import annotations
 
 import sys
 
-from grlps_api_client import GRLPSApiClient
+from grlps_api_client import GRLPSApiClient, is_initialised, resolve_workspace
 
 # A VIF file name resolves inside the workspace's user_interaction/vif folder.
 # An absolute path works too.
@@ -31,6 +35,15 @@ TEST_CASES = [
 
 
 def main() -> int:
+    workspace = resolve_workspace()
+    if not is_initialised(workspace):
+        print(
+            "No GRLPS C2-EPR workspace in {0}\n"
+            "Run 'c2epr-init' there first.".format(workspace),
+            file=sys.stderr,
+        )
+        return 1
+
     client = GRLPSApiClient()
 
     try:
