@@ -56,8 +56,11 @@ c2epr-init
 `c2epr-init` copies the default config into **the directory you are standing
 in**, then prints what still needs setting.
 
-Run `c2epr-testcases` and `c2epr-run` from this same directory. Each folder is a
-self-contained setup, so a second device just means a second folder.
+Run `c2epr-testcases` and `c2epr-run` from this same directory. One folder
+drives as many devices as you like — keep every VIF in `user_interaction\vif\`
+and switch with `selectedVifFile`, or pass one per run in code with
+`load_vif("Other.xml")`. Use a second folder only when you want a second set of
+settings.
 
 Your edits are never overwritten — re-running `c2epr-init` only restores files
 that are missing, so upgrades keep your settings.
@@ -224,7 +227,15 @@ and copy the name verbatim.
 Check `applications.C2-EPR.app_path` in `grlps_app_config.json`, and that the
 C2-EPR software runs on its own.
 
+**A test I selected never ran, or came back inconclusive**
+Check the VIF. `c2epr-run` stops with a message if the VIF fails to load or
+reports zero test cases, but a VIF that loads yet describes a *different* device
+runs to completion and returns inconclusive results.
+
 Logs for every run are written to `user_interaction\logs\`.
+
+Reports are copied to `common.reportExportDir`, one subfolder per run, so an
+earlier run's report is never replaced by a later one.
 
 ## Documentation
 

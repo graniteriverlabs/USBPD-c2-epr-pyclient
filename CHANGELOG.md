@@ -13,10 +13,15 @@ Initial public release of the GRL Platform Solutions C2-EPR Python client.
 - Console commands `c2epr-init`, `c2epr-testcases` and `c2epr-run`. Each returns
   exit code `0` on success and `1` on failure, so they drop straight into CI.
 - Library use: `from grlps_api_client import GRLPSApiClient`.
-- `c2epr-init` sets a project folder up in the directory you run it in, so each
-  bench or device keeps its own config, VIF files and logs side by side. Nothing
-  is written anywhere else, and re-running it only restores missing files, so
-  your settings survive an upgrade.
+- `c2epr-init` sets a project folder up in the directory you run it in, keeping
+  your config, VIF files and logs together. One folder drives as many devices as
+  you like. Nothing is written anywhere else, and re-running it only restores
+  missing files, so your settings survive an upgrade.
+- Reports are exported one subfolder per run, so a later run cannot replace an
+  earlier run's report.
+- `c2epr-run` stops with a clear message when the VIF fails to load or reports
+  zero test cases, instead of running the suite against whatever VIF the
+  application already had loaded.
 - The user guide and installer guide ship inside the package; locate them with
   `docs_dir()`.
 - A generic `example_captive_cable.xml` VIF, so the full flow runs before you

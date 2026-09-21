@@ -346,14 +346,22 @@ class ReportFrameworkService:
                     "message": "Destination equals report source root; folder copy skipped.",
                 }
             if copy_run_folder:
-                if os.path.isdir(run_dest):
-                    shutil.rmtree(run_dest)
-                shutil.copytree(effective_source_folder, run_dest)
+                # Never delete an existing export. Run folder names carry a
+                # timestamp, so a collision means the same run is being exported
+                # twice and overwriting those files is harmless; wiping the
+                # directory first would also destroy anything else kept there.
+                shutil.copytree(effective_source_folder, run_dest, dirs_exist_ok=True)
 
             if report_file_name:
                 src_html = os.path.join(effective_source_folder, str(report_file_name))
                 if os.path.isfile(src_html):
-                    dst_html = os.path.join(export_dir, str(report_file_name))
+                    # Reports go under export_dir/<run folder>/ rather than
+                    # straight into export_dir. The application reuses report
+                    # file names across runs (Run_1 restarts with each new
+                    # project), so a flat copy silently replaced the previous
+                    # run's report.
+                    os.makedirs(run_dest, exist_ok=True)
+                    dst_html = os.path.join(run_dest, str(report_file_name))
                     shutil.copy2(src_html, dst_html)
                     html_copied = dst_html
                     self._core.logger.info("[report_export] copied html: %s", dst_html)
@@ -363,7 +371,7 @@ class ReportFrameworkService:
                     pdf_name = str(report_file_name)[:-5] + ".pdf"
                     src_pdf = os.path.join(effective_source_folder, pdf_name)
                     if os.path.isfile(src_pdf):
-                        dst_pdf = os.path.join(export_dir, pdf_name)
+                        dst_pdf = os.path.join(run_dest, pdf_name)
                         shutil.copy2(src_pdf, dst_pdf)
                         pdf_copied = dst_pdf
                         self._core.logger.info("[report_export] copied pdf (same basename): %s", dst_pdf)
@@ -382,7 +390,7 @@ class ReportFrameworkService:
                             pdf_candidates.sort()
                             fallback_pdf = pdf_candidates[0]
                             src_pdf = os.path.join(effective_source_folder, fallback_pdf)
-                            dst_pdf = os.path.join(export_dir, fallback_pdf)
+                            dst_pdf = os.path.join(run_dest, fallback_pdf)
                             shutil.copy2(src_pdf, dst_pdf)
                             pdf_copied = dst_pdf
                             self._core.logger.info(

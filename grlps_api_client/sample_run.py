@@ -53,6 +53,42 @@ def main() -> dict:
     load_vif_payload = client.load_vif()
     _print_payload("load_vif", load_vif_payload)
 
+    # Stop here if the VIF did not load. Without this the run continues against
+    # whatever VIF the application already had loaded, and every test comes back
+    # inconclusive with nothing to say why.
+    if not bool(load_vif_payload.get("success")):
+        print(
+            "[sample_run] VIF load FAILED: {0}".format(
+                load_vif_payload.get("message") or "see log"
+            ),
+            file=sys.stderr,
+            flush=True,
+        )
+        client.stop_app()
+        return {
+            "start_app": start_payload,
+            "connect": connect_payload,
+            "create_project": create_project_payload,
+            "load_vif": load_vif_payload,
+        }
+
+    # A VIF that loads but yields no test cases is also unrunnable - usually the
+    # VIF does not describe the device that is actually connected.
+    if not int(load_vif_payload.get("testCaseCount") or 0):
+        print(
+            "[sample_run] VIF loaded but reports 0 test cases - check that "
+            "common.selectedVifFile matches the connected device.",
+            file=sys.stderr,
+            flush=True,
+        )
+        client.stop_app()
+        return {
+            "start_app": start_payload,
+            "connect": connect_payload,
+            "create_project": create_project_payload,
+            "load_vif": load_vif_payload,
+        }
+
     # send_test_list defaults:
     #   test_list=None -> uses common.testListToExecuteFile from grlps_app_config.json
     # Example explicit input (reference only):
@@ -106,9 +142,13 @@ def cli() -> int:
 
     ``main`` returns the payload dict, which library callers rely on. A console
     script must hand back an int, so this wrapper maps the run onto a process
-    exit code: 0 when the connection was established, 1 otherwise.
+    exit code: 0 when the flow ran to completion, 1 when it stopped early.
+
+    ``main`` returns a short dict when it bails out, so the absence of a step is
+    itself the signal that the step never happened.
     """
     result = main()
+
     connect = result.get("connect") or {}
     if not bool(connect.get("connectionSetupSuccess")):
         print(
@@ -117,6 +157,15 @@ def cli() -> int:
             flush=True,
         )
         return 1
+
+    if "run_testcases" not in result:
+        print(
+            "[sample_run] stopped before running tests - see the message above.",
+            file=sys.stderr,
+            flush=True,
+        )
+        return 1
+
     return 0
 
 
