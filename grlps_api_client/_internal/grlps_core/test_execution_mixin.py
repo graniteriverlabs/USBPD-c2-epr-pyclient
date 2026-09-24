@@ -153,8 +153,49 @@ class TestExecutionMixin:
         # runs, which looks identical to a test that was skipped. Catch it here
         # while the catalog is on disk. Skipped when the catalog is absent.
         known = self._get_known_test_names()
+        adjusted = []
         if known:
-            unknown = [name for name in resolved_list if name not in set(known)]
+            # The controller matches on its own strings exactly, and at least one
+            # C2-EPR test name ends in a space. Accept the tidy spelling a user
+            # would naturally type, but send back whatever the controller gave us.
+            exact = set(known)
+            by_stripped = {}
+            for name in known:
+                by_stripped.setdefault(name.strip(), name)
+
+            canonical = []
+            unknown = []
+            for name in resolved_list:
+                if name in exact:
+                    canonical.append(name)
+                elif name.strip() in by_stripped:
+                    controller_name = by_stripped[name.strip()]
+                    canonical.append(controller_name)
+                    adjusted.append({"requested": name, "sent": controller_name})
+                else:
+                    unknown.append(name)
+
+            if adjusted:
+                for item in adjusted:
+                    self.logger.warning(
+                        "[test_execution] test name does not match the controller's "
+                        "spelling exactly; sending the controller's version. "
+                        "requested=%r sent=%r",
+                        item["requested"],
+                        item["sent"],
+                    )
+                print(
+                    "  Test list: {0} name(s) adjusted to the controller's exact "
+                    "spelling (whitespace differs); see the log for details.".format(
+                        len(adjusted)
+                    ),
+                    file=sys.stderr,
+                    flush=True,
+                )
+                resolved_list = canonical
+            elif not unknown:
+                resolved_list = canonical
+
             if unknown:
                 return {
                     "success": False,
@@ -172,6 +213,8 @@ class TestExecutionMixin:
         payload = {
             "success": bool(post_res.is_success),
             "requestedCount": requested_count,
+            "sentTestList": list(resolved_list),
+            "adjustedNames": adjusted,
             "postTestListToExecute": api_result_to_json_dict(post_res),
             "error": post_res.error if not post_res.is_success else None,
         }
@@ -560,9 +603,57 @@ class TestExecutionMixin:
         ok = (not timed_out) and (not stalled) and bool(completed) and bool(results_complete)
         if test_results_saved_path:
             self.logger.info("[run_testcases] test results saved: %s", test_results_saved_path)
+
+        # statesMap stays out of the payload (it can be long), but the caller has
+        # no way to tell *which* tests failed to run without it. Derive the list.
+        states_map = last_progress.get("statesMap") or {}
+        not_executed = [
+            name
+            for name in expected_names
+            if str(states_map.get(name, "NOT_EXECUTED")).strip().upper()
+            in ("", "NOT_EXECUTED")
+        ]
+
+        # ``success: False`` on its own leaves the caller nothing to show a user.
+        # The controller reports no error when it silently declines to run a
+        # test, so the explanation has to be built here.
+        message = None
+        if timed_out:
+            message = "Run timed out after {0:.0f}s (timeout={1}s).".format(duration, timeout_sec)
+        elif stalled:
+            message = "Run stalled: no progress for {0:.0f}s.".format(stall_timeout_sec)
+        elif not ok:
+            if expected_total and len(not_executed) == expected_total:
+                message = (
+                    "The controller accepted the list but ran none of the {0} "
+                    "requested test(s) - every one reports NOT_EXECUTED. It returns "
+                    "no error in this case. The usual causes are a test that does "
+                    "not apply to the loaded VIF, or one the instrument licence "
+                    "does not cover. Compare the names against "
+                    "user_interaction/test_cases_list/test_case_list.json."
+                ).format(expected_total)
+            elif not_executed:
+                message = (
+                    "{0} of {1} requested test(s) did not run: {2}{3}."
+                ).format(
+                    len(not_executed),
+                    expected_total,
+                    ", ".join(not_executed[:5]),
+                    " ..." if len(not_executed) > 5 else "",
+                )
+            else:
+                message = (
+                    "Run did not complete ({0}/{1} results). See the session log."
+                ).format(last_progress.get("completed"), expected_total)
+        if message and not ok:
+            self.logger.warning("[run_testcases] %s", message)
+
         progress_out = {k: v for k, v in last_progress.items() if k != "statesMap"}
         return {
             "success": bool(ok),
+            "message": message,
+            "requestedCount": expected_total,
+            "notExecuted": not_executed,
             "completed": bool(completed),
             "timedOut": bool(timed_out),
             "stalled": bool(stalled),

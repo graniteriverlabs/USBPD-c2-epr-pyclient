@@ -83,11 +83,19 @@ def fetch_test_cases(handler, path_suffix=None, logger=None):
 
 
 def _node_display_name(node):
-    """Preferred name for a node: key, else title, else displayString. Skip empty."""
+    """
+    Preferred name for a node: key, else title, else displayString. Skip empty.
+
+    Returned exactly as the controller sent it, including any leading or
+    trailing whitespace. The controller matches the list it is posted against
+    these strings character for character, and at least one C2-EPR test name
+    ends in a space (it is stored that way in TestCaseHelper.dll). Trimming it
+    here produced a name the controller would silently refuse to run.
+    """
     for k in ("key", "title", "displayString"):
         v = node.get(k)
         if v and isinstance(v, str) and v.strip():
-            return v.strip()
+            return v
     return None
 
 

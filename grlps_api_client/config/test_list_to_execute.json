@@ -1,5 +1,5 @@
 [
-  "TEST.PD.PHY.ALL.1 Transmit Bit Rate and the Drift",
-  "TEST.PD.PHY.ALL.2 Transmitter Eye Diagram",
-  "TEST.PD.PHY.ALL.3 Collision Avoidance"
+  "TEST.PD.EPR.SRC3.5 EPR Entry Failed - EPR_Mode(Reserved) message",
+  "TEST.PD.EPR.SRC3.6 EPR Entry Failed - Cable not EPR capable",
+  "TEST.PD.EPR.SRC3.7 EPR Entry Failed - Interrupted by EPR_Get_Sink_Cap message"
 ]

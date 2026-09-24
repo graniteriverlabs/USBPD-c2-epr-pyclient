@@ -96,6 +96,26 @@ def main() -> dict:
     send_test_list_payload = client.send_test_list()
     _print_payload("send_test_list", send_test_list_payload)
 
+    # If the list was not accepted, nothing is staged on the controller and the
+    # run below would poll an idle instrument and report every test as
+    # NOT_EXECUTED, with no indication that the cause was here.
+    if not bool(send_test_list_payload.get("success")):
+        print(
+            "[sample_run] test list REJECTED: {0}".format(
+                send_test_list_payload.get("message") or "see log"
+            ),
+            file=sys.stderr,
+            flush=True,
+        )
+        client.stop_app()
+        return {
+            "start_app": start_payload,
+            "connect": connect_payload,
+            "create_project": create_project_payload,
+            "load_vif": load_vif_payload,
+            "send_test_list": send_test_list_payload,
+        }
+
     # Example with explicit inputs (reference only):
     # Defaults:
     #   timeout_sec=15000
@@ -112,6 +132,18 @@ def main() -> dict:
     # )
     run_testcases_payload = client.run_testcases()
     _print_payload("run_testcases", run_testcases_payload)
+
+    # The report is still generated below when the run falls short, because a
+    # partial report is usually worth having - but say plainly what happened,
+    # since the controller itself reports nothing when it declines to run a test.
+    if not bool(run_testcases_payload.get("success")):
+        print(
+            "[sample_run] run did NOT complete: {0}".format(
+                run_testcases_payload.get("message") or "see log"
+            ),
+            file=sys.stderr,
+            flush=True,
+        )
 
     # run_report_flow defaults:
     #   report_inputs=None
@@ -164,6 +196,10 @@ def cli() -> int:
             file=sys.stderr,
             flush=True,
         )
+        return 1
+
+    # A run that executed nothing must not report success to a CI job.
+    if not bool((result.get("run_testcases") or {}).get("success")):
         return 1
 
     return 0
