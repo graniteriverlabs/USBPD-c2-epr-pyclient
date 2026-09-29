@@ -1,6 +1,6 @@
 {
-  "version": "1.0",
-  "description": "Model config for PutPortConfigurations mapping. Update values here instead of hardcoding in code.",
+  "version": "1.1",
+  "description": "PutPortConfigurations mapping. Values match the C2-EPR application's own requests. Edit here instead of changing code.",
   "putPortConfigurations": {
     "defaults": {
       "executionMode": "InformationalMode",
@@ -53,33 +53,35 @@
     "requiredInputValidation": {
       "requireCaptiveCableField": true,
       "onMissingCaptiveCable": {
-        "logLevel": "ERROR",
-        "message": "VIF XML required field 'Captive_Cable' is missing; cannot derive cableType."
+        "logLevel": "WARNING",
+        "message": "VIF XML field 'Captive_Cable' is missing, so the cable selection cannot be derived from the VIF."
       }
     },
     "cableTypeByScenario": [
       {
+        "category": "cable",
+        "captiveCable": false,
+        "portA": "No Cable ( For Cable Testing )",
+        "portB": "GRL-SPL EPR Test Cable 1",
+        "note": "Cable DUT: the cable under test is the only cable in the path, so PortA must report no test cable."
+      },
+      {
+        "category": "cable",
+        "captiveCable": true,
+        "portA": "No Cable ( For Cable Testing )",
+        "portB": "GRL-SPL EPR Test Cable 1",
+        "note": "Cable DUTs do not carry a Captive_Cable field, so this row is a safety net: the DUT category decides, not the flag."
+      },
+      {
         "category": "normal",
         "captiveCable": true,
         "portA": "Captive Cable",
-        "portB": "Captive Cable"
+        "portB": "GRL-SPL EPR Test Cable 1"
       },
       {
         "category": "normal",
         "captiveCable": false,
         "portA": "GRL-SPL EPR Test Cable 1",
-        "portB": "GRL-SPL EPR Test Cable 1"
-      },
-      {
-        "category": "cable",
-        "captiveCable": true,
-        "portA": "Captive Cable",
-        "portB": "Captive Cable"
-      },
-      {
-        "category": "cable",
-        "captiveCable": false,
-        "portA": "No Cable ( For Cable Testing )",
         "portB": "GRL-SPL EPR Test Cable 1"
       }
     ],

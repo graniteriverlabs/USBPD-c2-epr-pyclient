@@ -27,8 +27,27 @@ Initial public release of the GRL Platform Solutions C2-EPR Python client.
 - A generic `example_captive_cable.xml` VIF, so the full flow runs before you
   supply your own.
 
+### Fixed
+
+- Cable selection is now chosen from the device type as well as the VIF's
+  `Captive_Cable` flag. A cable DUT is the only cable in the test path, so it is
+  sent as `No Cable ( For Cable Testing )`; previously a GRL test cable was
+  reported that is not physically present, and cable runs came back incomplete.
+- PortB, the tester's own port, always reports `GRL-SPL EPR Test Cable 1`.
+  Previously it mirrored PortA, so a captive-cable device sent the wrong cable
+  selection on PortB.
+- `config/put_port_config_mapping.json` is now read at run time. It described
+  the port and cable mapping but nothing loaded it, so editing it had no effect.
+  Edits to it now take effect, and the selected device type and cable are
+  printed when the VIF loads.
+
 ### Notes
 
+- If your project folder was created by an earlier build, its
+  `config/put_port_config_mapping.json` is kept as-is, because `c2epr-init`
+  never overwrites your files. The client says so at run time. Delete that file
+  and run `c2epr-init` to pick up the corrected table, unless you have edited it
+  yourself.
 - Runs on Windows with CPython 3.11 or newer. A single pure-Python
   `py3-none-any` wheel covers 3.11, 3.12, 3.13 and 3.14 - no build toolchain
   and no per-version wheels.
