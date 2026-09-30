@@ -4,9 +4,7 @@ Notable changes to this package. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version numbers track
 the GRLPS C2-EPR release they were built against.
 
-## 1.6.1.2 - 2026-09-21
-
-Initial public release of the GRL Platform Solutions C2-EPR Python client.
+## Unreleased
 
 ### Added
 
@@ -44,8 +42,8 @@ Initial public release of the GRL Platform Solutions C2-EPR Python client.
 
 - Cable selection is now chosen from the device type as well as the VIF's
   `Captive_Cable` flag. A cable DUT is the only cable in the test path, so it is
-  sent as `No Cable ( For Cable Testing )`; previously a GRL test cable was
-  reported that is not physically present, and cable runs came back incomplete.
+  sent as `No Cable ( For Cable Testing )`; previously a GRL-SPL test cable
+  was reported that is not physically present, and cable runs came back incomplete.
 - PortB, the tester's own port, always reports `GRL-SPL EPR Test Cable 1`.
   Previously it mirrored PortA, so a captive-cable device sent the wrong cable
   selection on PortB.
@@ -68,3 +66,9 @@ Initial public release of the GRL Platform Solutions C2-EPR Python client.
   This package is not published to PyPI.
 - Importing the package never creates files. Only `c2epr-init` writes anything,
   so `import grlps_api_client` from any directory leaves it untouched.
+
+## 1.6.1.2 - 2026-09-21
+
+Initial public release of the GRL Platform Solutions C2-EPR Python client:
+console commands, library use, a workspace created in the current directory,
+per-run report folders, and the bundled user guide and example VIF.

@@ -1,6 +1,6 @@
 # GRLPSApiClient User Guide
 
-End-user guide for `grlps_api_client.py` and the recommended sample script `sample_run.py`.
+End-user guide for the `grlps_api_client` client and the sample flow it ships. Installed with pip you reach it as `from grlps_api_client import GRLPSApiClient`; from a source checkout it is `grlps_api_client.py` beside `sample_run.py`.
 
 **Installed with pip?** You have no `sample_run.py` to run. Use the console commands instead, from the folder you initialised with `c2epr-init`:
 
@@ -126,7 +126,7 @@ Any method that wraps a single HTTP call (including nested fields like `putProje
 
 ### Sample input files for sample_run.py
 
-Paths are relative to the **project root** (the folder that contains `grlps_api_client.py` and `config/`).
+Paths are relative to the **project root**: the folder that contains `config/`. With a pip install that is the folder you ran `c2epr-init` in; from a source checkout it is the folder holding `grlps_api_client.py`.
 
 | File | Set in | Role |
 |------|--------|------|
@@ -220,11 +220,10 @@ if __name__ == "__main__":
 
 Run from the project root:
 
-`python sample_run.py`
+- pip install: `c2epr-run`
+- source checkout: `python sample_run.py`
 
-To print each step’s return dict as JSON to **stderr** (as in the samples below), set in `sample_run.py`:
-
-`VERBOSE_PAYLOADS = True`
+To print each step’s return dict as JSON to **stderr** (as in the samples below), set `VERBOSE_PAYLOADS = True` in `sample_run.py`. That file is inside the installed package, so with pip you would normally copy the flow into a script of your own instead — see the examples in the repository.
 
 ---
 

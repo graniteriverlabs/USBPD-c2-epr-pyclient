@@ -12,7 +12,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "LicenseRef-Proprietary"
 authors = [{ name = "GRL Platform Solutions" }]
-keywords = ["grlps", "grl", "usb-pd", "c2-epr", "epr", "test-automation"]
+keywords = ["grlps", "usb-pd", "c2-epr", "epr", "test-automation"]
 classifiers = [
     "Private :: Do Not Upload",
     "Development Status :: 5 - Production/Stable",
@@ -40,6 +40,5 @@ include = ["grlps_api_client*"]
 grlps_api_client = [
     "config/*.json",
     "user_interaction/vif/*",
-    "user_interaction/test_cases_list/*",
     "docs/*.md",
 ]

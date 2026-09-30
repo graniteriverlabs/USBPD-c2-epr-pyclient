@@ -63,7 +63,10 @@ and switch with `selectedVifFile`, or pass one per run in code with
 settings.
 
 Your edits are never overwritten — re-running `c2epr-init` only restores files
-that are missing, so upgrades keep your settings.
+that are missing, so upgrades keep your settings. The same rule means a
+corrected default cannot reach a folder you already have: when a shipped
+config file has moved on, the client says so at run time and names the file to
+delete before re-running `c2epr-init`.
 
 ### 2. Set your controller address
 
@@ -123,9 +126,11 @@ Edit `config\test_list_to_execute.json` — a plain list of names:
 ]
 ```
 
-> Names must match `test_case_list.json` **exactly** — copy and paste them.
-> Anything that doesn't match is rejected before the run starts, naming the
-> offending entries.
+> Copy and paste the names. A name the application does not know is rejected
+> before the run starts and the offending entries are listed, so nothing runs
+> against a half-correct list. A name that differs only in leading or trailing
+> spaces is corrected to the application's own spelling and reported — at
+> least one C2-EPR test name really does end in a space.
 
 ### 6. Run
 
@@ -222,7 +227,7 @@ your-project-folder\
 │   ├── test_list_to_execute.json   which tests to run
 │   ├── grlps_api_config.json       API endpoint map (leave alone)
 │   ├── logging_config.json
-│   └── put_port_config_mapping.json
+│   └── put_port_config_mapping.json   device type → cable selection
 └── user_interaction\
     ├── vif\                        put your VIF files here
     ├── test_cases_list\            generated: available tests
@@ -257,9 +262,10 @@ The client enforces Windows + CPython 3.11 or newer. Check with `python -V`.
 Your Python is older than 3.11. The package declares `requires-python = ">=3.11"`.
 
 **`test list rejected: ... not in the test catalog`**
-A name does not match `test_case_list.json` exactly. Names are checked before
+A name is not in `test_case_list.json` at all. Names are checked before
 anything is sent, so nothing ran. Re-run `c2epr-testcases` to refresh the
-catalog for your VIF and copy the names verbatim.
+catalog for your VIF and copy the names verbatim. Whitespace-only differences
+are not rejected: those are corrected for you and reported.
 
 **App does not start**
 Check `applications.C2-EPR.app_path` in `grlps_app_config.json`, and that the
