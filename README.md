@@ -75,6 +75,13 @@ Open `config\grlps_app_config.json` in that folder and replace the placeholder:
 
 Check `app_path` points at your GRLPS C2-EPR installation while you are there.
 
+A script can supply the address instead, which is what you want when one
+script drives more than one controller:
+
+```python
+client = GRLPSApiClient(ip_address="<your controller IP>")
+```
+
 ### 3. Add your VIF
 
 Copy your VIF XML into the workspace and select it:
@@ -151,7 +158,11 @@ whatever the application had loaded before.
 ```python
 from grlps_api_client import GRLPSApiClient
 
-client = GRLPSApiClient()
+# Anything omitted here comes from config\grlps_app_config.json.
+client = GRLPSApiClient(
+    ip_address="192.0.2.50",
+    report_export_dir=r"D:\reports\my-dut",
+)
 try:
     client.start_app()
 
@@ -185,6 +196,15 @@ finally:
 | VIF | `common.selectedVifFile` | `client.load_vif("x.xml")` |
 | Tests | `config/test_list_to_execute.json` | `client.send_test_list([...])` |
 | Project name | `common.projectName` | `client.create_project("Name")` |
+| Controller IP | `applications.<app>.ip_address` | `GRLPSApiClient(ip_address=...)` or `client.connect(ip_address=...)` |
+| Report location | `common.reportExportDir` | `GRLPSApiClient(report_export_dir=...)` or `client.run_report_flow(report_export_dir=...)` |
+
+For the last two the order is: the argument to the call, then the one given to
+`GRLPSApiClient(...)`, then the config file. Leave a value out, or pass `None`
+or `""`, and the next one down is used — so a script that sets neither behaves
+exactly as it always has. A relative `report_export_dir` lands inside the
+workspace, the same as the config value does. `connect()` reports which of the
+three supplied the address in `controllerConnectionAddressSource`.
 
 Every method returns a JSON-serialisable `dict`. See
 [`examples/`](examples/) for complete scripts, and the
@@ -227,7 +247,8 @@ Importing the library never creates files — only `c2epr-init` writes anything.
 
 **`ACTION REQUIRED: ... ip_address is still the placeholder`**
 Step 2 has not been done. The address `192.0.2.50` is a deliberate
-non-routable placeholder so an unconfigured install fails fast.
+non-routable placeholder so an unconfigured install fails fast. A script that
+passes `ip_address` does not need the config value set.
 
 **`RuntimeError` about Windows or the Python version at import**
 The client enforces Windows + CPython 3.11 or newer. Check with `python -V`.
@@ -254,16 +275,16 @@ Logs for every run are written to `user_interaction\logs\`.
 Reports are copied to `common.reportExportDir` - `user_interaction\reports_export\`
 by default - one subfolder per run, so an earlier run's report is never replaced
 by a later one. A relative path is resolved inside the workspace; set an
-absolute path to collect reports elsewhere.
+absolute path to collect reports elsewhere. A script can send a single run
+somewhere else with `report_export_dir`, without touching the config.
 
 ## Documentation
 
 | Guide | Covers |
 |---|---|
 | [User guide](grlps_api_client/docs/GRLPSApiClient_USER_GUIDE.md) | every method, full request/response examples |
-| [Installer guide](grlps_api_client/docs/GRLPSApiClient_INSTALLER_END_USER_GUIDE.md) | the standalone `.exe` installer |
 
-The same guides ship inside the package. Find them with:
+The guide ships inside the package. Find it with:
 
 ```python
 from grlps_api_client import docs_dir

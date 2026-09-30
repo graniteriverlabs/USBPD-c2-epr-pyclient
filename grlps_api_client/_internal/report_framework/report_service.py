@@ -157,6 +157,7 @@ class ReportFrameworkService:
         report_inputs: Optional[Dict[str, Any]] = None,
         *,
         copy_run_folder: bool = False,
+        report_export_dir: Optional[str] = None,
     ) -> Dict[str, Any]:
         self._core.logger.info("[report_flow] starting report workflow")
         update_payload = self.update_report_inputs(report_inputs=report_inputs or {})
@@ -178,6 +179,7 @@ class ReportFrameworkService:
             results_folder_name=results_folder_name,
             report_file_name=report_file_name,
             copy_run_folder=copy_run_folder,
+            report_export_dir=report_export_dir,
         )
         self._core.logger.info(
             "[report_flow] sourceFolder=%s | runRootFolder=%s",
@@ -213,9 +215,19 @@ class ReportFrameworkService:
             "timestamp": int(time.time()),
         }
 
-    def _get_report_export_dir(self) -> str:
-        common = self._core._get_common() or {}
-        path = str(common.get("reportExportDir") or "").strip()
+    def _get_report_export_dir(self, report_export_dir: Optional[str] = None) -> str:
+        """
+        Export root. Priority: this call's argument, then the directory given to
+        the client constructor, then common.reportExportDir from
+        grlps_app_config.json. A relative path is always resolved against the
+        workspace, wherever it came from.
+        """
+        path = str(report_export_dir or "").strip()
+        if not path:
+            path = str(getattr(self._core, "_report_export_dir_override", None) or "").strip()
+        if not path:
+            common = self._core._get_common() or {}
+            path = str(common.get("reportExportDir") or "").strip()
         if not path:
             return ""
         if not os.path.isabs(path):
@@ -374,8 +386,9 @@ class ReportFrameworkService:
         report_file_name: Optional[str],
         *,
         copy_run_folder: bool = False,
+        report_export_dir: Optional[str] = None,
     ) -> Dict[str, Any]:
-        requested_export_dir = self._get_report_export_dir()
+        requested_export_dir = self._get_report_export_dir(report_export_dir)
         export_dir = requested_export_dir
         if not export_dir or not self._ensure_writable_dir(export_dir):
             export_dir = self._fallback_export_dir()

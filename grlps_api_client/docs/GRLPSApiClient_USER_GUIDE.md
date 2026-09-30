@@ -2,8 +2,6 @@
 
 End-user guide for `grlps_api_client.py` and the recommended sample script `sample_run.py`.
 
-**Installed from the Windows setup program?** Start with **`GRLPSApiClient_INSTALLER_END_USER_GUIDE.md`** (how to install, run `run_sample.bat`, and open the install folder). This file focuses on configuration and API usage after Python is available.
-
 **Installed with pip?** You have no `sample_run.py` to run. Use the console commands instead, from the folder you initialised with `c2epr-init`:
 
 | This guide says | With a pip install, run |
@@ -51,6 +49,18 @@ The filenames `grlps_api_config.json` and `grlps_app_config.json` differ by one 
 | `config/logging_config.json` | Log levels and log file layout — **internal**; not a customer deliverable. |
 
 **Report export:** set `common.reportExportDir` in **`grlps_app_config.json`** to the folder where HTML/PDF should be copied. If that path is missing or not writable, the client falls back to `user_interaction/reports_export` and logs a warning.
+
+**Settings you can pass from code instead of the config file:** the VIF and the test list have always worked this way; the controller address and the report folder now do too.
+
+| Setting | Config file | From code |
+|---|---|---|
+| VIF | `common.selectedVifFile` | `load_vif(vif_file_path=...)` |
+| Test list | `common.testListToExecuteFile` | `send_test_list(test_list=[...])` |
+| Project name | `common.projectName` | `create_project(project_name=...)` |
+| Controller IP | `applications.<app>.ip_address` | `GRLPSApiClient(ip_address=...)` or `connect(ip_address=...)` |
+| Report folder | `common.reportExportDir` | `GRLPSApiClient(report_export_dir=...)` or `run_report_flow(report_export_dir=...)` |
+
+For the last two the priority is **argument → constructor → config file**. A value left out, `None`, or an empty string falls through to the next one, so a script that passes neither behaves exactly as before. A relative `report_export_dir` is resolved against the workspace, the same rule the config value follows. `connect()` returns `controllerConnectionAddressSource` (`"argument"`, `"constructor"` or `"config"`) so you can see which was used.
 
 **Default test list:** `send_test_list()` with no arguments loads the file pointed to by `common.testListToExecuteFile` (for example `config/test_list_to_execute.json`) unless you pass an explicit list in code.
 
@@ -101,15 +111,15 @@ Any method that wraps a single HTTP call (including nested fields like `putProje
 
 | Step | Code | Purpose |
 |------|------|---------|
-| 1 | `client = GRLPSApiClient()` | Bootstrap config + logging; runtime check |
+| 1 | `client = GRLPSApiClient()` | Bootstrap config + logging; runtime check. Optional `ip_address=` and `report_export_dir=` override the config file for this client |
 | 2 | `client.start_app()` | Ensure local C2 app is up; get `baseUrl` |
-| 3 | `client.connect()` | Start popup monitor; **ConnectionSetup** to controller |
+| 3 | `client.connect()` | Start popup monitor; **ConnectionSetup** to controller. Pass `ip_address=` to target a different controller for this call |
 | 4a | If `not connect_payload["connectionSetupSuccess"]` | `stop_app()` and **exit early** (skip project/VIF/tests/report) |
 | 4b | `client.create_project(project_name="Demo")` | Put project folder name |
 | 5 | `client.load_vif(vif_file_path="....xml")` | Upload VIF, PutVIFData, PutPortConfigurations; **by default** also fetches the test list and merges `testCasesListSuccess`, `testCaseCount`, and JSON paths into the **same** return dict (no second call) |
 | 6 | `client.send_test_list()` | Post list from `common.testListToExecuteFile` in `grlps_app_config.json` (or pass a list in code) |
 | 7 | `client.run_testcases(timeout_sec=15000, poll_interval_sec=1.0)` | Poll until READY / timeout / stall |
-| 8 | `client.run_report_flow()` | **Standard report step:** runs ReportsGeneration APIs + copies HTML/PDF to `common.reportExportDir` (see `grlps_app_config.json`). Prefer this over calling individual report APIs yourself. |
+| 8 | `client.run_report_flow()` | **Standard report step:** runs ReportsGeneration APIs + copies HTML/PDF to `common.reportExportDir` (see `grlps_app_config.json`), or to `report_export_dir=` when you pass one. Prefer this over calling individual report APIs yourself. |
 | 9 | `client.stop_app()` | Stop monitor; stop app only if this client launched it |
 
 **Optional extra:** `client.get_testcases_list(save_to_disk=True)` only if you need a fresh list after VIF load without calling `load_vif` again.
@@ -383,6 +393,32 @@ The following matches a verified end-to-end run (2026-03-28); exact paths, IPs, 
 
 ---
 
+## `GRLPSApiClient(ip_address=None, report_export_dir=None)`
+
+Constructing the client loads the config and logging setup and prepares the
+connection service. Both arguments are optional; `GRLPSApiClient()` reads
+everything from `config/grlps_app_config.json`, exactly as before.
+
+| Parameter | Type | Default | Meaning |
+|-----------|------|---------|---------|
+| `ip_address` | `str \| None` | `None` | Controller address for this client. Overrides `applications.<selectedApp>.ip_address`. A per-call `connect(ip_address=...)` overrides this in turn. |
+| `report_export_dir` | `str \| None` | `None` | Export folder for this client. Overrides `common.reportExportDir`. A per-call `run_report_flow(report_export_dir=...)` overrides this in turn. Relative paths resolve against the workspace. |
+
+Priority for both: **argument → constructor → config file**. `None` and an
+empty string count as "not supplied" and fall through to the next source, so a
+blank value can never be sent to the controller by accident.
+
+```python
+# One script, two benches, no config edits.
+for name, ip in [("bench-a", "192.0.2.50"), ("bench-b", "192.0.2.51")]:
+    client = GRLPSApiClient(ip_address=ip, report_export_dir=r"D:\reports\%s" % name)
+    ...
+```
+
+Importing the package never writes files; only `c2epr-init` does.
+
+---
+
 ## `start_app()`
 
 ### What it does
@@ -447,7 +483,7 @@ Interaction notes:
 2. Starts background handling of message boxes (popups) and writes a log under `user_interaction/logs` (paths come from the same config file below).  
 3. Calls the **ConnectionSetup** API on the local C2 app so it connects to your **USB PD tester / controller**.
 
-### Controller IP — taken from the config JSON file
+### Controller IP — from the call, the constructor, or the config JSON file
 
 You do **not** pass the IP as a Python argument. The client reads it from **`config/grlps_app_config.json`**:
 
@@ -460,7 +496,7 @@ The HTTP request is built as:
 
 `GET {baseUrl}/api/ConnectionSetup/0/{ip_address}`
 
-where `baseUrl` is the local C2 app (e.g. `http://127.0.0.1:5001`) and `{ip_address}` is the value of `ip_address` from the JSON file.
+where `baseUrl` is the local C2 app (e.g. `http://127.0.0.1:5001`) and `{ip_address}` is the address in use: the one passed to `connect()`, else the one passed to `GRLPSApiClient(...)`, else the value from the JSON file.
 
 **Minimal example** (only the parts relevant to IP; your file has more keys):
 
@@ -475,7 +511,7 @@ where `baseUrl` is the local C2 app (e.g. `http://127.0.0.1:5001`) and `{ip_addr
 }
 ```
 
-**If connection fails:** set `ip_address` to the real IP of the tester on your LAN, save `grlps_app_config.json`, and run `connect()` again. The same IP is echoed back in the return dict as `controllerConnectionAddress`.
+**If connection fails:** set `ip_address` to the real IP of the tester on your LAN, save `grlps_app_config.json`, and run `connect()` again — or pass the address straight to `connect(ip_address="...")` without editing anything. The IP actually used is echoed back in the return dict as `controllerConnectionAddress`, and `controllerConnectionAddressSource` says where it came from.
 
 ### Other values read from `grlps_app_config.json`
 
@@ -486,7 +522,11 @@ where `baseUrl` is the local C2 app (e.g. `http://127.0.0.1:5001`) and `{ip_addr
 
 ### Python parameters
 
-**None.** `connect()` takes no arguments; behavior is driven entirely by `config/grlps_app_config.json` as above.
+| Parameter | Type | Default | Meaning |
+|-----------|------|---------|---------|
+| `ip_address` | `str \| None` | `None` | Controller address for this call. Overrides the address given to `GRLPSApiClient(...)`, which overrides `applications.<app>.ip_address`. `None` or an empty string means "use those". |
+
+Everything else is driven by `config/grlps_app_config.json` as above. `connect()` with no arguments behaves exactly as it always has.
 
 ### Return value (dict)
 
@@ -495,7 +535,8 @@ where `baseUrl` is the local C2 app (e.g. `http://127.0.0.1:5001`) and `{ip_addr
 | `connectionSetupSuccess` | `true` if the tester responded OK to ConnectionSetup; check this before running tests |
 | `connectionSetupError` | Error text when setup failed; otherwise `null` |
 | `connectionSetup` | Full API wrapper (`success`, `resultType`, `error`, `data` with request URL and response body) |
-| `controllerConnectionAddress` | Copy of the IP that was read from `ip_address` in the config file |
+| `controllerConnectionAddress` | The IP actually used for ConnectionSetup |
+| `controllerConnectionAddressSource` | Where it came from: `"argument"`, `"constructor"` or `"config"` |
 | `msgboxMonitoringStarted` | `true` if the popup monitor thread was started |
 | `appStart`, `baseUrl`, `selectedApp`, `pid`, `didLauncherStartApp`, `timestamp` | Same meaning as in `start_app()` |
 
@@ -508,6 +549,7 @@ Inside `connectionSetup.data.response.data` you will see server fields such as `
   "appStart": true,
   "baseUrl": "http://127.0.0.1:5001",
   "controllerConnectionAddress": "192.0.2.50",
+  "controllerConnectionAddressSource": "config",
   "connectionSetupSuccess": true,
   "connectionSetupError": null,
   "msgboxMonitoringStarted": true
@@ -648,7 +690,22 @@ The `message` text comes from the library. Fix by setting `common.projectName` i
 | `ports.PortB.dutType` | Fixed to `Provider Only` |
 | `ports.PortA.stateMachineType` | Fixed to `SRC` |
 | `ports.PortB.stateMachineType` | Fixed to `SRC` |
-| `ports.*.cableType` | From `Captive_Cable`: `true` -> `Captive Cable`, `false` -> `GRL-SPL EPR Test Cable 1` |
+| `ports.PortA.cableType` | Cable DUT -> `No Cable ( For Cable Testing )`. Otherwise from `Captive_Cable`: `true` -> `Captive Cable`, `false` -> `GRL-SPL EPR Test Cable 1` |
+| `ports.PortB.cableType` | Fixed to `GRL-SPL EPR Test Cable 1`; PortB is the tester's own port |
+
+A cable under test is the only cable in the path, so PortA must report that no
+test cable is fitted. Cable VIFs also carry no `Captive_Cable` field, which is
+why the DUT category decides and not that flag.
+
+These rules live in **`config/put_port_config_mapping.json`** and are read at
+run time, so they can be corrected without a code change. `c2epr-init` does not
+overwrite a copy you already have; if yours predates the current release the
+client says so at run time, and you can delete the file and re-run `c2epr-init`
+to get the current table. The chosen values are printed when the VIF loads:
+
+```
+VIF: DUT type 'Cable', cable selection 'No Cable ( For Cable Testing )'.
+```
 
 ### Output (success)
 
@@ -662,6 +719,9 @@ The `message` text comes from the library. Fix by setting `common.projectName` i
   "putVIFFileAttempt": "filename-only",
   "putVIFData": { "success": true, "resultType": "success", "error": null, "warning": null, "data": { "...": "..." } },
   "putPortConfigurations": { "success": true, "resultType": "success", "error": null, "warning": null, "data": { "...": "..." } },
+  "portADutType": "Consumer Provider",
+  "portACableType": "Captive Cable",
+  "portBCableType": "GRL-SPL EPR Test Cable 1",
   "testCasesListSuccess": true,
   "testCaseCount": 568,
   "testCasesJsonPath": "E:\\...\\user_interaction\\test_cases_list\\test_case_list.json",
@@ -869,15 +929,19 @@ Each of the following returns the **normalized API result** dict unless noted.
 - **Input:** optional HTML file name; if omitted, uses `get_report_file_name()` internally.
 - **Output:** string URL, e.g. `http://127.0.0.1:5001/Report/GRL_USB_PD_Report_Run_1_2026_03_28.html`, or `""` if unavailable.
 
-### `run_report_flow(report_inputs=None)`
+### `run_report_flow(report_inputs=None, *, copy_run_folder=False, report_export_dir=None)`
 
-Runs, in order: `PostUpdateReportInputs`, `GetReportInputs`, `GetTestRunInfo`, `GetResultsFolderName`, `GetReportFileName`, `GetReportPathStatus`, then resolves folders on disk, copies **HTML + PDF** (same base name) to **`common.reportExportDir`** (`grlps_app_config.json`), and returns one consolidated dict.
+Runs, in order: `PostUpdateReportInputs`, `GetReportInputs`, `GetTestRunInfo`, `GetResultsFolderName`, `GetReportFileName`, `GetReportPathStatus`, then resolves folders on disk, copies **HTML + PDF** (same base name) to the export folder, and returns one consolidated dict.
+
+The export folder is `report_export_dir` when given, else the `report_export_dir` passed to `GRLPSApiClient(...)`, else **`common.reportExportDir`** (`grlps_app_config.json`). A relative path is resolved against the workspace in every case.
 
 **Input**
 
 | Parameter | Meaning |
 |-----------|---------|
 | `report_inputs` | Optional `dict` passed to `update_report_inputs` |
+| `copy_run_folder` | When `True`, also copy the whole run folder, not just HTML/PDF |
+| `report_export_dir` | Export folder for this call. Overrides the constructor value, which overrides `common.reportExportDir`. `None` or empty means "use those" |
 
 **Output (top-level keys)**
 
@@ -926,7 +990,7 @@ Runs, in order: `PostUpdateReportInputs`, `GetReportInputs`, `GetTestRunInfo`, `
 | Test case lists | `user_interaction/test_cases_list/*.json` when `get_testcases_list(save_to_disk=True)` or when `load_vif` runs the default post-load fetch (`fetch_testcases_after=True`, `testcases_save_to_disk=True`) |
 | Converted VIF JSON | `{name}_vif_data.json` beside the VIF XML under `user_interaction/vif/` |
 | Last GetTestResults body | `user_interaction/logs/test_results.json` only when `create_get_test_results_json=True` in code |
-| Report export copies | `common.reportExportDir` in **`grlps_app_config.json`** (HTML + PDF at export root; nested run folder under `copiedRunFolder`) |
+| Report export copies | `report_export_dir` argument, else the `GRLPSApiClient(report_export_dir=...)` value, else `common.reportExportDir` in **`grlps_app_config.json`** (HTML + PDF at export root; nested run folder under `copiedRunFolder`) |
 
 ---
 

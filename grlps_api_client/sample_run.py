@@ -27,9 +27,23 @@ def _print_payload(step_name: str, payload) -> None:
 
 
 def main() -> dict:
+    # GRLPSApiClient defaults:
+    #   ip_address=None        -> uses applications.<selectedApp>.ip_address
+    #   report_export_dir=None -> uses common.reportExportDir
+    # Set either here to override the config file for this whole run.
+    # Example explicit inputs (reference only):
+    # client = GRLPSApiClient(
+    #     ip_address="192.0.2.50",
+    #     report_export_dir=r"D:\reports\my_dut",
+    # )
     client = GRLPSApiClient()
     start_payload = client.start_app()
     _print_payload("start_app", start_payload)
+
+    # connect defaults:
+    #   ip_address=None -> constructor value, else config
+    # Example explicit input (reference only):
+    # connect_payload = client.connect(ip_address="192.0.2.50")
     connect_payload = client.connect()
     _print_payload("connect", connect_payload)
     if not bool(connect_payload.get("connectionSetupSuccess")):
@@ -148,8 +162,13 @@ def main() -> dict:
     # run_report_flow defaults:
     #   report_inputs=None
     #   copy_run_folder=False (copies only HTML/PDF)
+    #   report_export_dir=None -> constructor value, else common.reportExportDir
     # Example explicit input (reference only):
-    # report_payload = client.run_report_flow(report_inputs={}, copy_run_folder=False)
+    # report_payload = client.run_report_flow(
+    #     report_inputs={},
+    #     copy_run_folder=False,
+    #     report_export_dir=r"D:\reports\my_dut",
+    # )
     report_payload = client.run_report_flow()
     _print_payload("run_report_flow", report_payload)
 

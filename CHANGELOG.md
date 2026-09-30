@@ -22,10 +22,23 @@ Initial public release of the GRL Platform Solutions C2-EPR Python client.
 - `c2epr-run` stops with a clear message when the VIF fails to load or reports
   zero test cases, instead of running the suite against whatever VIF the
   application already had loaded.
-- The user guide and installer guide ship inside the package; locate them with
-  `docs_dir()`.
+- The user guide ships inside the package; locate it with `docs_dir()`.
 - A generic `example_captive_cable.xml` VIF, so the full flow runs before you
   supply your own.
+- The controller address and the report location can be set from a script,
+  the way the VIF and the test list already could:
+
+      client = GRLPSApiClient(
+          ip_address="192.0.2.50",
+          report_export_dir=r"D:\reports\my-dut",
+      )
+
+  Either can also be passed per call, as `connect(ip_address=...)` and
+  `run_report_flow(report_export_dir=...)`. Anything left out falls back to
+  `grlps_app_config.json`, so existing scripts and configs are unaffected. A
+  relative report path lands inside the workspace, as the config value does.
+  `connect()` reports which source was used in
+  `controllerConnectionAddressSource`.
 
 ### Fixed
 

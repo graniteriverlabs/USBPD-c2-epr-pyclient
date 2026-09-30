@@ -91,16 +91,37 @@ class GRLPSApiClient:
     ``GRLPSApiClient_USER_GUIDE.md``.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        ip_address: Optional[str] = None,
+        report_export_dir: Optional[str] = None,
+    ):
         """
         Construct the client using default config locations under the project root.
 
-        Inputs: none (no constructor arguments for end users).
+        Inputs
+        ------
+        ip_address : str | None
+            Controller address for ConnectionSetup. Overrides
+            ``applications.<selectedApp>.ip_address`` in
+            ``grlps_app_config.json`` for this client. Omit it, or pass
+            ``None``, to use the configured value.
+        report_export_dir : str | None
+            Where exported reports are written. Overrides
+            ``common.reportExportDir`` for this client. A relative path is
+            resolved against the workspace, exactly as the config value is.
+            Omit it, or pass ``None``, to use the configured value.
+
+        Both are optional, so ``GRLPSApiClient()`` behaves exactly as before and
+        keeps reading everything from the config file.
 
         Side effects: loads logging + app config, prepares connection service.
         """
         # End users should not pass config/logging file paths.
-        self._core = GRLPSApiClientCore()
+        self._core = GRLPSApiClientCore(
+            ip_address=ip_address,
+            report_export_dir=report_export_dir,
+        )
 
     def start_app(self) -> Dict[str, Any]:
         """
@@ -132,15 +153,19 @@ class GRLPSApiClient:
         """
         return self._core.start_app()
 
-    def connect(self) -> Dict[str, Any]:
+    def connect(self, ip_address: Optional[str] = None) -> Dict[str, Any]:
         """
         Step 2 for end users: run ConnectionSetup.
         If app is not running, this method calls start_app() internally first.
 
-        Inputs: none.
+        Inputs:
+          - `ip_address` (`str | None`): controller address to connect to.
+            Takes priority over the address given to the constructor, which in
+            turn takes priority over the config file. Omit it to use those.
 
         Configuration source (`config/grlps_app_config.json`):
-          - `applications.<selectedApp>.ip_address` for ConnectionSetup path
+          - `applications.<selectedApp>.ip_address` for ConnectionSetup path,
+            used when no address is supplied here or to the constructor
           - `common.msgboxLogDir`, `common.msgboxLogJsonName` for popup log file
 
         Internal sequence:
@@ -155,7 +180,10 @@ class GRLPSApiClient:
               - `connectionSetup.data["response"]["data"]` for server-side details
           - Popup/log path: check `msgboxLogDir` / `msgboxLogJsonName` in
             **`grlps_app_config.json`**.
-          - Wrong controller IP: update `ip_address` in **`grlps_app_config.json`**.
+          - Wrong controller IP: pass `ip_address` here, or update
+            `ip_address` in **`grlps_app_config.json`**.
+          - `controllerConnectionAddressSource` in the return payload says
+            which of the three the address came from.
 
         Returns (`Dict[str, Any]`):
           - appStart (`bool`): app process/server ready for API calls.
@@ -164,6 +192,7 @@ class GRLPSApiClient:
           - selectedApp (`str`): selected app name from config.
           - baseUrl (`str | None`): local API base URL.
           - controllerConnectionAddress (`str | None`): controller IP used in ConnectionSetup.
+          - controllerConnectionAddressSource (`str`): `"argument"`, `"constructor"` or `"config"`.
           - connectionSetupSuccess (`bool`): final ConnectionSetup pass/fail.
           - connectionSetupError (`str | None`): failure reason when setup fails.
           - connectionSetup (`Dict[str, Any]`): full normalized API result with keys:
@@ -175,7 +204,7 @@ class GRLPSApiClient:
           - timestamp (`int`)
           - msgboxMonitoringStarted (`bool`): popup monitor started before ConnectionSetup.
         """
-        return self._core.connect()
+        return self._core.connect(ip_address=ip_address)
 
     def stop_app(self) -> Dict[str, Any]:
         """
@@ -571,6 +600,7 @@ class GRLPSApiClient:
         report_inputs: Optional[Dict[str, Any]] = None,
         *,
         copy_run_folder: bool = False,
+        report_export_dir: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Run the full report workflow: update inputs, query report APIs, export artifacts.
@@ -586,6 +616,11 @@ class GRLPSApiClient:
         copy_run_folder : bool
             When ``True``, also copy the entire run folder under destination.
             Default ``False`` copies only HTML/PDF files.
+        report_export_dir : str | None
+            Where to write the exported report. Takes priority over the
+            directory given to the constructor, which in turn takes priority
+            over ``common.reportExportDir``. A relative path is resolved
+            against the workspace. Omit it to use those.
 
         Returns (``Dict[str, Any]``) — consolidated payload
         --------------------------------------------------
@@ -603,7 +638,7 @@ class GRLPSApiClient:
                     "enabled": true,
                     "success": true | false,
                     "destination": "<export root>",
-                    "requestedDestination": "<common.reportExportDir from grlps_app_config>",
+                    "requestedDestination": "<the export dir asked for, before any fallback>",
                     "sourceFolder": "<actual folder used, e.g. New_Run...>",
                     "resolvedRunFolder": "<parent Demo_... run folder>",
                     "copiedRunFolder": "<folder under destination>",
@@ -617,11 +652,13 @@ class GRLPSApiClient:
                 "timestamp": <unix seconds>
             }
 
-        Export destination comes from ``common.reportExportDir`` in
+        Export destination is ``report_export_dir`` when given, else the
+        directory passed to the constructor, else ``common.reportExportDir`` in
         **``grlps_app_config.json``**; invalid paths fall back to
         ``user_interaction/reports_export`` when needed.
         """
         return self._core.run_report_flow(
             report_inputs=report_inputs,
             copy_run_folder=copy_run_folder,
+            report_export_dir=report_export_dir,
         )

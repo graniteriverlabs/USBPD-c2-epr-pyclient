@@ -24,6 +24,10 @@ from grlps_api_client import GRLPSApiClient, is_initialised, resolve_workspace
 
 DEFAULT_VIF = "example_captive_cable.xml"
 
+# Controller address. None uses applications.C2-EPR.ip_address from
+# config\grlps_app_config.json.
+IP_ADDRESS = None            # e.g. "192.0.2.50"
+
 
 def main() -> int:
     workspace = resolve_workspace()
@@ -36,7 +40,8 @@ def main() -> int:
         return 1
 
     vif_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_VIF
-    client = GRLPSApiClient()
+    # IP_ADDRESS left as None falls back to the workspace config.
+    client = GRLPSApiClient(ip_address=IP_ADDRESS)
 
     try:
         client.start_app()

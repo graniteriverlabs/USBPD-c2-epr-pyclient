@@ -27,6 +27,20 @@ from report_framework import ReportFrameworkService
 _DEFAULT_PROGRESS_FULL_STATES_MAX = DEFAULT_PROGRESS_FULL_STATES_MAX
 
 
+def _clean_override(value: Optional[str]) -> Optional[str]:
+    """
+    Normalise a caller-supplied override.
+
+    Blank and whitespace-only are treated as "not supplied", so
+    ``ip_address=""`` falls back to the config rather than sending an empty
+    address to the controller.
+    """
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
 def _resolve_project_root_from_file(file_path: str) -> str:
     import os
 
@@ -49,10 +63,16 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
         self,
         app_config_file: Optional[str] = None,
         logging_config_file: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        report_export_dir: Optional[str] = None,
     ):
         """Initialize client (bootstrap + create connection service)."""
         # Code-only switch: set True when debug GetTestResults JSON files are needed.
         self.create_get_test_results_json = False
+        # Session-wide overrides for values that otherwise come from
+        # grlps_app_config.json. Empty or None means "use the config".
+        self._ip_address_override = _clean_override(ip_address)
+        self._report_export_dir_override = _clean_override(report_export_dir)
         self._config_manager = None
         self._log_manager = None
         self._connection_service: Optional[ConnectionService] = None
@@ -188,14 +208,17 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
             "timestamp": int(time.time()),
         }
 
-    def connect(self) -> dict:
+    def connect(self, ip_address: Optional[str] = None) -> dict:
         """
+        ``ip_address`` overrides the configured controller address for this call.
+
         Keys in the returned dict:
           - appStart
           - didLauncherStartApp
           - selectedApp
           - baseUrl
           - controllerConnectionAddress
+          - controllerConnectionAddressSource ("argument" | "constructor" | "config")
           - timestamp
           - connectionSetupSuccess
           - connectionSetupError
@@ -222,7 +245,7 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
             self._msgbox_monitoring_started = False
         else:
             self._msgbox_monitoring_started = bool(self.start_msgbox_monitoring())
-            conn = self.connection_setup()
+            conn = self.connection_setup(ip_address)
             if not conn.is_success:
                 self.logger.warning(
                     "[connection] ConnectionSetup did not succeed (%s)",
@@ -235,7 +258,9 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
             "pid": app_payload.get("pid"),
             "selectedApp": app_payload.get("selectedApp"),
             "baseUrl": app_payload.get("baseUrl"),
-            "controllerConnectionAddress": app_payload.get("controllerConnectionAddress"),
+            # The address actually used, which is the argument when one was given.
+            "controllerConnectionAddress": self.get_connection_address(ip_address),
+            "controllerConnectionAddressSource": self._connection_address_source(ip_address),
             "connectionSetupSuccess": bool(app_ready and conn.is_success),
             "connectionSetupError": None if conn.is_success else conn.error,
             "connectionSetup": api_result_to_json_dict(conn),
@@ -264,21 +289,34 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
             return Result.failure("App not launched; call launch_app() or ensure_app_ready() first")
         return handler.call_api(api_name, **kwargs)
 
-    def get_connection_address_from_config(self) -> str:
+    def get_connection_address(self, ip_address: Optional[str] = None) -> str:
         """
         Controller connection IP for GET /api/ConnectionSetup/0/<ip>.
-        From applications.C2-EPR.ip_address (not the HTTP server host; base URL stays localhost).
+
+        Priority: this call's argument, then the address given to the
+        constructor, then applications.<selectedApp>.ip_address from
+        grlps_app_config.json. Not the HTTP server host; the base URL stays
+        localhost either way.
         """
+        supplied = _clean_override(ip_address) or self._ip_address_override
+        if supplied:
+            return supplied
         if self._config_manager:
             ip = self._config_manager.get_app_field("ip_address", "127.0.0.1")
             if ip and isinstance(ip, str):
                 return ip.strip()
         return "127.0.0.1"
 
-    def connection_setup(self):
+    def get_connection_address_from_config(self) -> str:
+        """Effective controller IP. Kept for callers that predate the override."""
+        return self.get_connection_address()
+
+    def connection_setup(self, ip_address: Optional[str] = None):
         """
         Connection setup: GET /api/ConnectionSetup/0/<connection_address>
         (e.g. http://localhost:5001/api/ConnectionSetup/0/192.0.2.50).
+
+        ``ip_address`` overrides the configured controller address for this call.
         """
         from api.result import Result
 
@@ -286,11 +324,20 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
         if not handler:
             self._controller_connected = False
             return Result.failure("App not launched; call launch_app() or ensure_app_ready() first")
-        addr = self.get_connection_address_from_config()
-        self.logger.info("[connection] ConnectionSetup: .../ConnectionSetup/0/%s", addr)
+        addr = self.get_connection_address(ip_address)
+        source = self._connection_address_source(ip_address)
+        self.logger.info("[connection] ConnectionSetup: .../ConnectionSetup/0/%s (from %s)", addr, source)
         result = handler.call_api(ApiName.CONNECTION_SETUP, path_suffix=addr)
         self._controller_connected = bool(result.is_success)
         return result
+
+    def _connection_address_source(self, ip_address: Optional[str] = None) -> str:
+        """Where the controller address came from, for the log and the payload."""
+        if _clean_override(ip_address):
+            return "argument"
+        if self._ip_address_override:
+            return "constructor"
+        return "config"
 
     # ---- Msgbox monitoring (separate thread, saves message/reply to JSON) ----
     def start_msgbox_monitoring(self):
@@ -367,8 +414,10 @@ class GRLPSApiClientCore(ProjectVifMixin, TestExecutionMixin):
         report_inputs: Optional[Dict[str, Any]] = None,
         *,
         copy_run_folder: bool = False,
+        report_export_dir: Optional[str] = None,
     ) -> Dict[str, Any]:
         return self._report_framework.run_report_flow(
             report_inputs=report_inputs,
             copy_run_folder=copy_run_folder,
+            report_export_dir=report_export_dir,
         )

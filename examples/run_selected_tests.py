@@ -11,8 +11,8 @@ Run it from a folder you have already set up:
     c2epr-init                          # once, to set the folder up
     python <path to>\run_selected_tests.py
 
-Set your controller address in config\grlps_app_config.json before the first
-run, or the connection step fails.
+The controller address and the report location can be set below or left to
+config\grlps_app_config.json.
 """
 from __future__ import annotations
 
@@ -25,6 +25,16 @@ from grlps_api_client import GRLPSApiClient, is_initialised, resolve_workspace
 VIF_FILE = "example_captive_cable.xml"
 
 PROJECT_NAME = "example-run"
+
+# Controller address. None uses applications.C2-EPR.ip_address from
+# config\grlps_app_config.json. Set it here to drive a different controller
+# without editing the config, which is what you want when one script runs
+# against more than one bench.
+IP_ADDRESS = None            # e.g. "192.0.2.50"
+
+# Where exported reports are written. None uses common.reportExportDir. A
+# relative path lands inside the workspace; an absolute path is used as given.
+REPORT_EXPORT_DIR = None     # e.g. r"D:\reports\my-dut"
 
 # Names must match user_interaction/test_cases_list/test_case_list.json
 # exactly. Run `c2epr-testcases` to regenerate that file for your VIF.
@@ -44,7 +54,11 @@ def main() -> int:
         )
         return 1
 
-    client = GRLPSApiClient()
+    # Anything left as None here falls back to the workspace config.
+    client = GRLPSApiClient(
+        ip_address=IP_ADDRESS,
+        report_export_dir=REPORT_EXPORT_DIR,
+    )
 
     try:
         client.start_app()
@@ -56,7 +70,11 @@ def main() -> int:
                 file=sys.stderr,
             )
             print(
-                "Check applications.C2-EPR.ip_address in your workspace config.",
+                "Tried {0} (from {1}). Set IP_ADDRESS in this script, or "
+                "applications.C2-EPR.ip_address in your workspace config.".format(
+                    connect.get("controllerConnectionAddress"),
+                    connect.get("controllerConnectionAddressSource"),
+                ),
                 file=sys.stderr,
             )
             return 1
